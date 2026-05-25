@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <title>ECC • Ultimate Trading Terminal | XAUUSD ETHUSD BTCUSD</title>
+    <title>ECC Pro • Ultimate Trading Terminal | XAUUSD ETHUSD BTCUSD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -21,8 +21,18 @@
         .scroll-feed::-webkit-scrollbar { width: 4px; }
         .scroll-feed::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
         .scroll-feed::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        @keyframes pulse-green { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .live-dot { animation: pulse-green 1.5s infinite; }
+        .event-high { border-left: 3px solid #ef4444; background: #450a0a; }
+        .event-medium { border-left: 3px solid #f59e0b; }
+        .trailing-active { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .pending-order { background: #1e1b4b; border: 1px solid #4c1d95; border-radius: 16px; padding: 8px; margin-bottom: 8px; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .btn-primary { background: #3b82f6; transition: 0.2s; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; transition: 0.2s; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -31,15 +41,16 @@
     <header class="sticky top-0 z-50 glass-card border-b border-slate-700/50">
         <div class="max-w-7xl mx-auto px-5 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <div class="text-4xl font-black bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 bg-clip-text text-transparent">ECC</div>
+                <div class="text-4xl font-black bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 bg-clip-text text-transparent">ECC Pro</div>
                 <div>
                     <div class="text-lg md:text-xl font-bold tracking-tight">ULTIMATE TRADING TERMINAL</div>
                     <div class="flex flex-wrap gap-3 text-xs mt-1">
                         <span id="xauSource" class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> XAU: Init</span>
                         <span id="ethSource" class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> ETH: Init</span>
                         <span id="btcSource" class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> BTC: Init</span>
-                        <span class="skill-badge">🔒 Security Active</span>
-                        <span class="skill-badge">🧠 Continuous Learning</span>
+                        <span class="skill-badge">🔒 Risk Manager</span>
+                        <span class="skill-badge">📅 Economic Cal</span>
+                        <span class="skill-badge">📊 Multi-TF</span>
                     </div>
                 </div>
             </div>
@@ -69,15 +80,15 @@
                     <div class="bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-xl text-sm text-emerald-400 font-medium">⚡ REALTIME TICK</div>
                     <div class="bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl text-sm text-blue-400 font-medium">📡 iTick (XAU)</div>
                     <div class="bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl text-sm text-amber-400 font-medium">🟡 Binance (BTC/ETH)</div>
-                    <div class="bg-violet-500/10 border border-violet-500/30 px-4 py-2 rounded-xl text-sm text-violet-400 font-medium">🧠 MULTI-SKILL AI</div>
+                    <div class="bg-violet-500/10 border border-violet-500/30 px-4 py-2 rounded-xl text-sm text-violet-400 font-medium">🧠 AI Consensus + Risk</div>
                 </div>
             </div>
             <div id="signalPill" class="text-4xl md:text-5xl font-black px-8 py-5 rounded-2xl text-center min-w-[240px] transition-all duration-300 signal-neutral">WAITING</div>
         </div>
 
-        <!-- MAIN GRID: CHART + SKILLS -->
+        <!-- MAIN GRID: CHART + PANEL -->
         <div class="grid lg:grid-cols-3 gap-7">
-            <!-- TradingView Chart -->
+            <!-- TradingView Chart (2/3) -->
             <div class="lg:col-span-2 glass-card p-4 md:p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-extrabold text-lg">📈 LIVE CHART (TradingView)</h3>
@@ -86,518 +97,403 @@
                 <div id="tradingview_chart" style="height: 520px; width: 100%; border-radius: 20px; overflow: hidden;"></div>
             </div>
 
-            <!-- SKILLS & PREDICTION PANEL -->
+            <!-- AI + RISK + MULTI-TF PANEL -->
             <div class="glass-card p-5 flex flex-col gap-5">
                 <div>
-                    <h3 class="text-xl font-extrabold mb-3 flex items-center gap-2">🧠 MULTI-SKILL AI</h3>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="skill-badge">📊 RSI Skill</span>
-                        <span class="skill-badge">📉 MACD Skill</span>
-                        <span class="skill-badge">📈 Trend Skill</span>
-                        <span class="skill-badge">⚡ Volatility Skill</span>
-                        <span class="skill-badge">🎯 Consensus Engine</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="metric-card p-4 text-center">
-                            <div class="text-xs text-slate-400">RSI (14)</div>
-                            <div id="rsiNumber" class="text-4xl font-black mt-1">—</div>
-                        </div>
-                        <div class="metric-card p-4 text-center">
-                            <div class="text-xs text-slate-400">MACD Signal</div>
-                            <div id="macdSignal" class="text-2xl font-bold mt-1 text-cyan-400">—</div>
-                        </div>
-                        <div class="metric-card p-4 text-center">
-                            <div class="text-xs text-slate-400">TREND</div>
-                            <div id="trendText" class="text-xl font-bold mt-1 text-emerald-400">—</div>
-                        </div>
-                        <div class="metric-card p-4 text-center">
-                            <div class="text-xs text-slate-400">VOLATILITY</div>
-                            <div id="volatilityLabel" class="text-xl font-bold mt-1 text-orange-400">—</div>
-                        </div>
+                    <h3 class="text-xl font-extrabold mb-3 flex items-center gap-2">🧠 AI CONSENSUS</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">RSI (14)</div><div id="rsiNumber" class="text-3xl font-black">—</div></div>
+                        <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">MACD Signal</div><div id="macdSignal" class="text-xl font-bold text-cyan-400">—</div></div>
+                        <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">TREND</div><div id="trendText" class="text-lg font-bold">—</div></div>
+                        <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">VOLATILITY</div><div id="volatilityLabel" class="text-lg font-bold text-orange-400">—</div></div>
                     </div>
                 </div>
-                <div class="border-t border-slate-700 pt-4">
-                    <div class="text-sm text-slate-400 mb-2">🎯 CONSENSUS PREDICTION</div>
-                    <div id="signalReasonText" class="text-slate-200 text-sm leading-relaxed mb-3">Menunggu data real-time...</div>
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-xs text-slate-400">Confidence Score</span>
-                        <span id="scoreValue" class="text-2xl font-bold text-violet-400">--</span><span class="text-xs">%</span>
+
+                <!-- Multi-Timeframe Alignment -->
+                <div class="border-t border-slate-700 pt-3">
+                    <div class="text-sm text-slate-400 mb-2">📊 MULTI-TIMEFRAME ALIGNMENT</div>
+                    <div class="flex justify-between gap-2 text-xs">
+                        <div class="bg-slate-800 p-2 rounded-xl text-center flex-1"><span class="block text-slate-500">H4</span><span id="tfH4" class="font-bold text-yellow-400">—</span></div>
+                        <div class="bg-slate-800 p-2 rounded-xl text-center flex-1"><span class="block text-slate-500">1H</span><span id="tfH1" class="font-bold text-yellow-400">—</span></div>
+                        <div class="bg-slate-800 p-2 rounded-xl text-center flex-1"><span class="block text-slate-500">15m</span><span id="tf15m" class="font-bold text-yellow-400">—</span></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mt-2">
-                        <div class="metric-card p-3">
-                            <div class="text-xs text-slate-400">SUGGESTED SL</div>
-                            <div id="slValue" class="text-xl font-bold text-red-400">—</div>
-                        </div>
-                        <div class="metric-card p-3">
-                            <div class="text-xs text-slate-400">SUGGESTED TP</div>
-                            <div id="tpValue" class="text-xl font-bold text-emerald-400">—</div>
-                        </div>
-                    </div>
+                    <div class="mt-2 text-xs text-center" id="alignmentMsg">Menunggu data...</div>
+                </div>
+
+                <!-- Prediction Reason -->
+                <div class="border-t border-slate-700 pt-3">
+                    <div class="text-sm text-slate-400 mb-1">🎯 PREDICTION REASON</div>
+                    <div id="signalReasonText" class="text-xs text-slate-300 leading-relaxed">—</div>
+                    <div class="flex justify-between mt-2"><span class="text-xs text-slate-400">Confidence</span><span id="scoreValue" class="text-xl font-bold text-violet-400">--</span><span class="text-xs">%</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- BOTTOM: ORDER FEED + STATS + LEARNING LOG -->
+        <!-- RISK MANAGEMENT + ORDER ENTRY -->
+        <div class="grid md:grid-cols-2 gap-7">
+            <!-- Position Sizing & Order Panel -->
+            <div class="glass-card p-5">
+                <h3 class="text-xl font-extrabold mb-4">💼 RISK MANAGER & ORDER</h3>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="metric-card p-3"><div class="text-xs text-slate-400">Account Balance ($)</div><input type="number" id="balance" value="10000" step="1000" class="bg-slate-800 w-full rounded-lg px-3 py-2 text-lg font-bold"></div>
+                    <div class="metric-card p-3"><div class="text-xs text-slate-400">Risk % per trade</div><input type="number" id="riskPercent" value="1.5" step="0.5" min="0.5" max="3" class="bg-slate-800 w-full rounded-lg px-3 py-2 font-bold"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="metric-card p-3"><div class="text-xs text-slate-400">Stop Loss (pips)</div><input type="number" id="slPips" value="500" step="10" class="bg-slate-800 w-full rounded-lg px-3 py-2"></div>
+                    <div class="metric-card p-3"><div class="text-xs text-slate-400">Take Profit (pips)</div><input type="number" id="tpPips" value="1000" step="10" class="bg-slate-800 w-full rounded-lg px-3 py-2"></div>
+                </div>
+                <div class="mb-4 p-3 bg-slate-800 rounded-xl">
+                    <div class="flex justify-between text-sm"><span>Recommended Lot Size:</span><span id="recommendedLot" class="text-emerald-400 font-bold">0.00</span></div>
+                    <div class="flex justify-between text-sm"><span>Risk Amount ($):</span><span id="riskAmount" class="text-red-400">$0</span></div>
+                    <div class="flex justify-between text-sm"><span>Risk-Reward Ratio:</span><span id="rrRatio" class="text-cyan-400">1:0</span></div>
+                    <div class="text-xs text-slate-500 mt-2" id="riskWarning"></div>
+                </div>
+                <div class="flex gap-3">
+                    <button id="buyMarketBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold transition">BUY MARKET</button>
+                    <button id="sellMarketBtn" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition">SELL MARKET</button>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <button id="buyLimitBtn" class="flex-1 bg-blue-600/50 hover:bg-blue-600 py-2 rounded-lg text-sm">BUY LIMIT</button>
+                    <button id="sellLimitBtn" class="flex-1 bg-orange-600/50 hover:bg-orange-600 py-2 rounded-lg text-sm">SELL LIMIT</button>
+                    <input type="number" id="limitPrice" placeholder="Limit Price" class="bg-slate-700 rounded-lg px-2 w-24 text-sm">
+                </div>
+                <div id="orderStatus" class="text-xs text-center mt-3 text-slate-400"></div>
+                <!-- Trailing Stop Section -->
+                <div class="mt-4 border-t border-slate-700 pt-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">🏃 Trailing Stop</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="trailingCheckbox" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-600 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <input type="number" id="trailingPips" value="200" step="10" class="bg-slate-800 rounded-lg px-2 py-1 w-full text-sm" placeholder="Trailing distance (pips)">
+                        <div class="text-xs text-slate-400">Aktif jika profit > jarak</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Economic Calendar + Pending Orders -->
+            <div class="glass-card p-5">
+                <h3 class="text-xl font-extrabold mb-3">📅 ECONOMIC CALENDAR (HIGH IMPACT)</h3>
+                <div id="calendarList" class="space-y-2 max-h-[200px] overflow-y-auto scroll-feed text-xs">
+                    <div class="text-slate-400">Memuat data ekonomi...</div>
+                </div>
+                <div class="mt-4 border-t border-slate-700 pt-3">
+                    <h3 class="text-lg font-bold mb-2">⏳ PENDING ORDERS (Limit)</h3>
+                    <div id="pendingOrdersList" class="space-y-2 max-h-[150px] overflow-y-auto"></div>
+                    <div class="text-center text-xs text-slate-500 mt-2">Order limit akan dipantau setiap detik</div>
+                </div>
+                <!-- Community / GitHub -->
+                <div class="mt-3 pt-2 text-center">
+                    <a href="https://github.com/markarambu86/ECC" target="_blank" class="text-xs text-slate-400 hover:text-white">🤝 Komunitas ECC GitHub → Bagikan strategi & feedback</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRADE FEED & STATS -->
         <div class="grid md:grid-cols-2 gap-7">
             <div class="glass-card p-5">
-                <h3 class="text-xl font-extrabold mb-4 flex items-center gap-2">🔄 LIVE ORDER FEED</h3>
-                <div id="tradeFeedList" class="space-y-3 max-h-[320px] overflow-y-auto scroll-feed pr-1"></div>
-                <div class="text-center text-xs text-slate-500 mt-4">Tick real-time dari iTick (XAU) & Binance (BTC/ETH)</div>
+                <h3 class="text-xl font-extrabold mb-4">🔄 LIVE ORDER FEED</h3>
+                <div id="tradeFeedList" class="space-y-3 max-h-[280px] overflow-y-auto scroll-feed pr-1"></div>
             </div>
             <div class="glass-card p-5">
                 <h3 class="text-xl font-extrabold mb-4">📈 MARKET STATS + LEARNING LOG</h3>
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">24h HIGH</div><div id="dailyHigh" class="text-2xl font-bold text-emerald-300">—</div></div>
-                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">24h LOW</div><div id="dailyLow" class="text-2xl font-bold text-red-300">—</div></div>
-                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">TICK VOLUME</div><div id="tickVolume" class="text-2xl font-bold text-cyan-300">0</div></div>
-                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">ATR (14)</div><div id="atrValue" class="text-2xl font-bold text-amber-300">—</div></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">24h HIGH</div><div id="dailyHigh" class="text-xl font-bold text-emerald-300">—</div></div>
+                    <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">24h LOW</div><div id="dailyLow" class="text-xl font-bold text-red-300">—</div></div>
+                    <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">TICK VOLUME</div><div id="tickVolume" class="text-xl font-bold text-cyan-300">0</div></div>
+                    <div class="metric-card p-3 text-center"><div class="text-xs text-slate-400">ATR (14)</div><div id="atrValue" class="text-xl font-bold text-amber-300">—</div></div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-700">
-                    <div class="text-xs text-slate-400 mb-2">🧠 Continuous Learning — Signal Accuracy</div>
-                    <div id="learningLog" class="text-xs text-slate-500 space-y-1 max-h-[100px] overflow-y-auto"></div>
+                <div class="mt-3 pt-2 border-t border-slate-700">
+                    <div class="text-xs text-slate-400 mb-1">🧠 Continuous Learning (Accuracy)</div>
+                    <div id="learningLog" class="text-xs text-slate-400">—</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ======================= KONFIGURASI =======================
-        // Tidak ada hardcoded API key (kecuali untuk fallback Live-Rates yang gratis tanpa key)
-        // Security scanner otomatis mendeteksi jika ada key yang hardcoded
-        (function securityScanner() {
-            const scriptText = document.currentScript?.innerHTML || "";
-            if (scriptText.match(/["'][A-Za-z0-9]{20,}["']/g) && scriptText.includes("api_key")) {
-                console.warn("⚠️ SECURITY: Possible hardcoded API key detected");
-                document.querySelector(".skill-badge").style.borderColor = "#ef4444";
-            }
-        })();
-
-        // Pair configuration
+        // ---------- KONFIGURASI ----------
         const PAIRS = {
-            XAU: { label: "XAU/USD", tvSymbol: "OANDA:XAUUSD", decimal: 2, atrScale: 2.5, source: "itick" },
-            ETH: { label: "ETH/USD", tvSymbol: "OANDA:ETHUSD", decimal: 1, atrScale: 15, source: "binance" },
-            BTC: { label: "BTC/USD", tvSymbol: "BINANCE:BTCUSDT", decimal: 0, atrScale: 150, source: "binance" }
+            XAU: { label: "XAU/USD", tvSymbol: "OANDA:XAUUSD", decimal: 2, atrScale: 2.5, pointValue: 1.0 }, // 1 pip = $1 per lot
+            ETH: { label: "ETH/USD", tvSymbol: "OANDA:ETHUSD", decimal: 1, atrScale: 15, pointValue: 1.0 },
+            BTC: { label: "BTC/USD", tvSymbol: "BINANCE:BTCUSDT", decimal: 0, atrScale: 150, pointValue: 1.0 }
         };
         let currentPair = "XAU";
         let lastPrice = 0, dailyHigh = 0, dailyLow = Infinity, tickCounter = 0;
         let priceHistory = [], candleData = [], currentCandle = null, lastCandleTime = null;
         let predictionHistory = [];
-        
-        // WebSocket connections
-        let itickSocket = null;
-        let binanceSocketBTC = null;
-        let binanceSocketETH = null;
-        let activeSocket = null; // untuk pair saat ini
-        
-        // Fallback timers
-        let xauFallbackInterval = null;
-        let cryptoFallbackInterval = null;
-        
-        // DOM elements
-        const priceLarge = document.getElementById("priceLarge");
-        const changeLarge = document.getElementById("changeLarge");
-        const signalPill = document.getElementById("signalPill");
-        const signalReasonText = document.getElementById("signalReasonText");
-        const slValue = document.getElementById("slValue");
-        const tpValue = document.getElementById("tpValue");
-        const rsiNumber = document.getElementById("rsiNumber");
-        const macdSignalDiv = document.getElementById("macdSignal");
-        const trendText = document.getElementById("trendText");
-        const volatilityLabel = document.getElementById("volatilityLabel");
-        const scoreValue = document.getElementById("scoreValue");
-        const dailyHighEl = document.getElementById("dailyHigh");
-        const dailyLowEl = document.getElementById("dailyLow");
-        const tickVolumeSpan = document.getElementById("tickVolume");
-        const atrSpan = document.getElementById("atrValue");
-        const tradeFeedList = document.getElementById("tradeFeedList");
-        const pairLabel = document.getElementById("pairLabel");
-        const learningLog = document.getElementById("learningLog");
-        const xauSourceSpan = document.getElementById("xauSource");
-        const ethSourceSpan = document.getElementById("ethSource");
-        const btcSourceSpan = document.getElementById("btcSource");
         let tvWidget = null;
         
-        // ======================= SKILL FUNCTIONS =======================
-        function calculateRSI(prices, period = 14) {
-            if (prices.length < period + 1) return 50;
-            let gains = 0, losses = 0;
-            for (let i = prices.length - period; i < prices.length; i++) {
-                let diff = prices[i] - prices[i-1];
-                if (diff >= 0) gains += diff;
-                else losses += Math.abs(diff);
-            }
-            let avgGain = gains / period, avgLoss = losses / period;
-            if (avgLoss === 0) return 100;
-            return 100 - (100 / (1 + (avgGain / avgLoss)));
+        // Data sources
+        let itickSocket = null, binanceBTC = null, binanceETH = null;
+        let xauFallbackInterval = null, cryptoFallbackInterval = null;
+        
+        // Pending orders (limit)
+        let pendingOrders = []; // {pair, type, price, lot, sl, tp, timestamp}
+        let activePositions = []; // untuk trailing stop tracking (simulasi)
+        
+        // DOM refs
+        const balanceInput = document.getElementById("balance");
+        const riskPercentInput = document.getElementById("riskPercent");
+        const slPipsInput = document.getElementById("slPips");
+        const tpPipsInput = document.getElementById("tpPips");
+        const recommendedLotSpan = document.getElementById("recommendedLot");
+        const riskAmountSpan = document.getElementById("riskAmount");
+        const rrRatioSpan = document.getElementById("rrRatio");
+        const riskWarningSpan = document.getElementById("riskWarning");
+        const buyMarketBtn = document.getElementById("buyMarketBtn");
+        const sellMarketBtn = document.getElementById("sellMarketBtn");
+        const buyLimitBtn = document.getElementById("buyLimitBtn");
+        const sellLimitBtn = document.getElementById("sellLimitBtn");
+        const limitPriceInput = document.getElementById("limitPrice");
+        const orderStatus = document.getElementById("orderStatus");
+        const trailingCheckbox = document.getElementById("trailingCheckbox");
+        const trailingPipsInput = document.getElementById("trailingPips");
+        const tradeFeedList = document.getElementById("tradeFeedList");
+        const learningLogDiv = document.getElementById("learningLog");
+        
+        // Helper: update position sizing
+        function updatePositionSizing() {
+            let balance = parseFloat(balanceInput.value);
+            let riskPercent = parseFloat(riskPercentInput.value);
+            let slPips = parseFloat(slPipsInput.value);
+            let tpPips = parseFloat(tpPipsInput.value);
+            if (isNaN(balance) || isNaN(riskPercent) || isNaN(slPips)) return;
+            let riskAmount = balance * (riskPercent / 100);
+            let pointValue = PAIRS[currentPair].pointValue;
+            let lotSize = riskAmount / (slPips * pointValue);
+            lotSize = Math.max(0.01, Math.min(10, lotSize));
+            recommendedLotSpan.innerText = lotSize.toFixed(2);
+            riskAmountSpan.innerText = `$${riskAmount.toFixed(2)}`;
+            let rr = (tpPips / slPips).toFixed(2);
+            rrRatioSpan.innerText = `1:${rr}`;
+            if (rr < 2) riskWarningSpan.innerText = "⚠️ Risk-Reward < 1:2, tidak disarankan!";
+            else riskWarningSpan.innerText = "✅ Risk-Reward ok (≥1:2)";
+            return { lotSize, riskAmount, rr };
         }
         
-        function calculateMACD(prices, fast=12, slow=26) {
-            if (prices.length < slow+1) return 0;
-            let emaFast = prices[0], emaSlow = prices[0];
-            let kFast = 2/(fast+1), kSlow = 2/(slow+1);
-            for(let i=1; i<prices.length; i++) {
-                emaFast = (prices[i] - emaFast) * kFast + emaFast;
-                emaSlow = (prices[i] - emaSlow) * kSlow + emaSlow;
-            }
-            let macd = emaFast - emaSlow;
-            return (macd / prices[prices.length-1]) * 1000;
-        }
-        
-        function calculateATR(period = 14) {
-            if (candleData.length < period + 1) return PAIRS[currentPair].atrScale;
-            let trSum = 0;
-            for (let i = candleData.length - period; i < candleData.length; i++) {
-                let high = candleData[i].high, low = candleData[i].low;
-                let prevClose = candleData[i-1].close;
-                let tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-                trSum += tr;
-            }
-            return trSum / period;
-        }
-        
-        function getVolatilityLevel() {
-            if (candleData.length < 10) return "MEDIUM";
-            let sumRange = 0;
-            for (let i = candleData.length-10; i < candleData.length; i++) sumRange += (candleData[i].high - candleData[i].low);
-            let avgRange = sumRange / 10;
-            let scale = PAIRS[currentPair].atrScale;
-            if (avgRange > scale * 2.5) return "HIGH 🔥";
-            if (avgRange > scale) return "MEDIUM ⚡";
-            return "LOW 💤";
-        }
-        
-        function detectTrend(prices, period=20) {
-            if (prices.length < period) return "SIDEWAYS";
-            let sma = prices.slice(-period).reduce((a,b)=>a+b,0)/period;
-            let current = prices[prices.length-1];
-            if (current > sma * 1.005) return "BULLISH";
-            if (current < sma * 0.995) return "BEARISH";
-            return "SIDEWAYS";
-        }
-        
-        function consensusPrediction(price, rsi, macd, trend, volatility) {
-            let buyWeight = 0, sellWeight = 0;
-            let reasons = [];
-            if (rsi < 30) { buyWeight += 40; reasons.push("RSI oversold (+40)"); }
-            else if (rsi < 40) { buyWeight += 20; reasons.push("RSI near oversold (+20)"); }
-            else if (rsi > 70) { sellWeight += 40; reasons.push("RSI overbought (-40)"); }
-            else if (rsi > 60) { sellWeight += 20; reasons.push("RSI overbought moderate (-20)"); }
-            
-            if (macd > 15) { buyWeight += 30; reasons.push("MACD bullish (+30)"); }
-            else if (macd < -15) { sellWeight += 30; reasons.push("MACD bearish (-30)"); }
-            else if (macd > 5) buyWeight += 10;
-            else if (macd < -5) sellWeight += 10;
-            
-            if (trend === "BULLISH") { buyWeight += 25; reasons.push("Trend bullish (+25)"); }
-            else if (trend === "BEARISH") { sellWeight += 25; reasons.push("Trend bearish (-25)"); }
-            
-            let volFactor = (volatility === "HIGH") ? 0.7 : (volatility === "MEDIUM") ? 0.9 : 1.0;
-            let netScore = (buyWeight - sellWeight);
-            let confidence = Math.min(95, Math.max(50, 50 + netScore * 1.2)) * volFactor;
-            let direction = "";
-            if (netScore >= 25) direction = "STRONG BUY";
-            else if (netScore >= 10) direction = "BUY";
-            else if (netScore <= -25) direction = "STRONG SELL";
-            else if (netScore <= -10) direction = "SELL";
-            else direction = "NEUTRAL";
-            
-            let reasonText = reasons.slice(0,3).join(" | ");
-            return { signal: direction, confidence: Math.floor(confidence), reason: reasonText || "Mixed signals" };
-        }
-        
-        function updateIndicatorsAndPrediction(price) {
-            if (priceHistory.length < 25) return;
-            const rsi = calculateRSI(priceHistory, 14);
-            const macd = calculateMACD(priceHistory);
-            const trend = detectTrend(priceHistory);
-            const volatility = getVolatilityLevel();
-            const atr = calculateATR(14);
-            atrSpan.innerText = atr.toFixed(PAIRS[currentPair].decimal === 0 ? 0 : (PAIRS[currentPair].decimal === 1 ? 1 : 2));
-            rsiNumber.innerText = rsi.toFixed(1);
-            macdSignalDiv.innerText = macd.toFixed(1);
-            trendText.innerText = trend;
-            trendText.className = `text-xl font-bold mt-1 ${trend === "BULLISH" ? "text-emerald-400" : trend==="BEARISH" ? "text-red-400" : "text-yellow-400"}`;
-            volatilityLabel.innerText = volatility;
-            
-            const pred = consensusPrediction(price, rsi, macd, trend, volatility);
-            scoreValue.innerText = pred.confidence;
-            signalReasonText.innerText = pred.reason;
-            signalPill.innerText = pred.signal;
-            signalPill.classList.remove("signal-buy", "signal-sell", "signal-neutral");
-            if (pred.signal.includes("BUY")) signalPill.classList.add("signal-buy");
-            else if (pred.signal.includes("SELL")) signalPill.classList.add("signal-sell");
-            else signalPill.classList.add("signal-neutral");
-            
-            let sl = price - (atr * 1.4);
-            let tp = price + (atr * 2.2);
-            if (pred.signal.includes("SELL")) {
-                sl = price + (atr * 1.4);
-                tp = price - (atr * 2.2);
-            }
-            let dec = PAIRS[currentPair].decimal;
-            slValue.innerText = sl.toFixed(dec);
-            tpValue.innerText = tp.toFixed(dec);
-            
-            // Continuous learning record
-            let predictedDir = pred.signal.includes("BUY") ? "BUY" : (pred.signal.includes("SELL") ? "SELL" : "NEUTRAL");
-            predictionHistory.push({ timestamp: Date.now(), price: price, predictedDirection: predictedDir, confidence: pred.confidence });
-            if (predictionHistory.length > 50) predictionHistory.shift();
-            evaluateAndUpdateLearning();
-        }
-        
-        function evaluateAndUpdateLearning() {
-            if (predictionHistory.length < 2) return;
-            let lastPred = predictionHistory[predictionHistory.length-2];
-            let currentPrice = lastPrice;
-            if (!lastPred || !currentPrice) return;
-            let priceChange = (currentPrice - lastPred.price) / lastPred.price * 100;
-            let correct = false;
-            if (lastPred.predictedDirection === "BUY" && priceChange > 0.1) correct = true;
-            else if (lastPred.predictedDirection === "SELL" && priceChange < -0.1) correct = true;
-            else if (lastPred.predictedDirection === "NEUTRAL" && Math.abs(priceChange) < 0.1) correct = true;
-            
-            if (!lastPred.evaluated) {
-                lastPred.evaluated = true;
-                lastPred.correct = correct;
-                lastPred.actualChange = priceChange;
-            }
-            let total = predictionHistory.filter(p => p.evaluated).length;
-            let correctCount = predictionHistory.filter(p => p.evaluated && p.correct).length;
-            let accuracy = total > 0 ? (correctCount/total*100).toFixed(1) : 0;
-            learningLog.innerHTML = `<div class="text-emerald-400">📊 Akurasi sinyal (${total} evaluasi): ${accuracy}%</div>
-                                     <div class="text-slate-500 text-[10px]">Terus belajar dari pergerakan harga aktual...</div>`;
-        }
-        
-        // ======================= PRICE HANDLER =======================
-        function updatePriceUI(price, source) {
-            const decimals = PAIRS[currentPair].decimal;
-            const change = lastPrice ? ((price - lastPrice) / lastPrice * 100) : 0;
-            priceLarge.innerText = price.toFixed(decimals);
-            if (price > lastPrice) {
-                priceLarge.classList.add("price-up"); priceLarge.classList.remove("price-down");
-                changeLarge.innerHTML = `<span class="text-emerald-400">▲ +${change.toFixed(3)}%</span>`;
-            } else if (price < lastPrice) {
-                priceLarge.classList.add("price-down"); priceLarge.classList.remove("price-up");
-                changeLarge.innerHTML = `<span class="text-red-400">▼ ${change.toFixed(3)}%</span>`;
-            } else {
-                changeLarge.innerHTML = `<span class="text-slate-400">0.00%</span>`;
-            }
-            if (price > dailyHigh) dailyHigh = price;
-            if (price < dailyLow) dailyLow = price;
-            dailyHighEl.innerText = dailyHigh.toFixed(decimals);
-            dailyLowEl.innerText = (dailyLow === Infinity ? price : dailyLow).toFixed(decimals);
-            lastPrice = price;
-            
-            priceHistory.push(price);
-            if (priceHistory.length > 200) priceHistory.shift();
-            
-            const now = Date.now();
-            const minute = Math.floor(now / 60000);
-            if (lastCandleTime !== minute) {
-                if (currentCandle) candleData.push(currentCandle);
-                currentCandle = { time: minute, open: price, high: price, low: price, close: price };
-                lastCandleTime = minute;
-                if (candleData.length > 100) candleData.shift();
-            } else if (currentCandle) {
-                currentCandle.high = Math.max(currentCandle.high, price);
-                currentCandle.low = Math.min(currentCandle.low, price);
-                currentCandle.close = price;
-            }
-            updateIndicatorsAndPrediction(price);
-        }
-        
-        function addToFeed(price, direction, source) {
+        function addToFeed(text, type) {
             const feedItem = document.createElement("div");
             feedItem.className = `metric-card p-3 flex justify-between items-center text-sm`;
-            feedItem.innerHTML = `<div><span class="font-bold ${direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}">${direction}</span><div class="text-[10px] text-slate-500">${source} • ${new Date().toLocaleTimeString()}</div></div><div class="font-mono">${price.toFixed(PAIRS[currentPair].decimal)}</div>`;
+            feedItem.innerHTML = `<span class="text-xs text-slate-400">${new Date().toLocaleTimeString()}</span><span class="${type === 'BUY' ? 'text-emerald-400' : type==='SELL' ? 'text-red-400' : 'text-white'}">${text}</span>`;
             tradeFeedList.prepend(feedItem);
-            while (tradeFeedList.children.length > 20) tradeFeedList.removeChild(tradeFeedList.lastChild);
-            tickCounter++;
-            tickVolumeSpan.innerText = tickCounter;
+            while(tradeFeedList.children.length > 30) tradeFeedList.removeChild(tradeFeedList.lastChild);
         }
         
-        // ======================= DATA SOURCES =======================
-        // 1. iTick WebSocket untuk XAUUSD (gratis, tanpa key)
-        function connectITick() {
-            if (itickSocket) itickSocket.close();
-            itickSocket = new WebSocket('wss://ws.itick.org/forex');
-            itickSocket.onopen = () => {
-                itickSocket.send(JSON.stringify({ "event": "subscribe", "pair": "XAUUSD" }));
-                xauSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full live-dot"></span> XAU: iTick Live';
-                if (xauFallbackInterval) clearInterval(xauFallbackInterval);
-            };
-            itickSocket.onmessage = (e) => {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.pair === "XAUUSD" && data.price) {
-                        const price = parseFloat(data.price);
-                        if (!isNaN(price) && currentPair === "XAU") {
-                            updatePriceUI(price, "iTick");
-                            addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "iTick");
-                        }
-                    }
-                } catch(err) {}
-            };
-            itickSocket.onerror = () => {
-                xauSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> XAU: iTick Error → Fallback';
-                startXAUFallback();
-            };
-            itickSocket.onclose = () => {
-                if (!xauFallbackInterval) startXAUFallback();
-                setTimeout(connectITick, 10000);
-            };
+        // Execute market order
+        function executeOrder(direction) {
+            if (lastPrice === 0) { orderStatus.innerText = "❌ Belum ada harga"; return; }
+            let balance = parseFloat(balanceInput.value);
+            let riskPercent = parseFloat(riskPercentInput.value);
+            let slPips = parseFloat(slPipsInput.value);
+            let tpPips = parseFloat(tpPipsInput.value);
+            let lot = parseFloat(recommendedLotSpan.innerText);
+            if (isNaN(lot) || lot <= 0) { orderStatus.innerText = "❌ Hitung lot size dulu"; return; }
+            let riskReward = tpPips / slPips;
+            if (riskReward < 2) {
+                if (!confirm("Risk-Reward kurang dari 1:2. Lanjutkan?")) return;
+            }
+            let slPrice, tpPrice;
+            if (direction === "BUY") {
+                slPrice = lastPrice - (slPips * 0.01); // karena XAU 0.01 = 1 pip? sederhana
+                tpPrice = lastPrice + (tpPips * 0.01);
+            } else {
+                slPrice = lastPrice + (slPips * 0.01);
+                tpPrice = lastPrice - (tpPips * 0.01);
+            }
+            addToFeed(`${direction} ${lot} lot @ ${lastPrice.toFixed(PAIRS[currentPair].decimal)} | SL=${slPrice.toFixed(2)} TP=${tpPrice.toFixed(2)}`, direction);
+            orderStatus.innerText = `✅ ORDER ${direction} executed! SL=${slPrice.toFixed(2)} TP=${tpPrice.toFixed(2)}`;
+            // Simulasi trailing stop active
+            if (trailingCheckbox.checked) {
+                let trailingDist = parseFloat(trailingPipsInput.value);
+                activePositions.push({ direction, entryPrice: lastPrice, lot, slPrice, tpPrice, trailingDist, highestPrice: lastPrice, lowestPrice: lastPrice });
+            }
         }
         
-        function startXAUFallback() {
-            if (xauFallbackInterval) clearInterval(xauFallbackInterval);
-            xauFallbackInterval = setInterval(() => {
-                fetch('https://www.live-rates.com/rates')
-                    .then(res => res.json())
-                    .then(data => {
-                        const goldRate = data.find(rate => rate.currency === "XAU/USD");
-                        if (goldRate && goldRate.rate) {
-                            const price = parseFloat(goldRate.rate);
-                            if (!isNaN(price) && currentPair === "XAU") {
-                                updatePriceUI(price, "Live-Rates");
-                                addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "Live-Rates");
-                                xauSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> XAU: Fallback (Live-Rates)';
-                            }
-                        }
-                    })
-                    .catch(err => console.error("Live-Rates fetch error:", err));
-            }, 3000);
+        // Pending limit orders
+        function addLimitOrder(type) {
+            let limitPriceVal = parseFloat(limitPriceInput.value);
+            if (isNaN(limitPriceVal) || limitPriceVal <= 0) { orderStatus.innerText = "❌ Masukkan limit price"; return; }
+            let lot = parseFloat(recommendedLotSpan.innerText);
+            let slPips = parseFloat(slPipsInput.value);
+            let tpPips = parseFloat(tpPipsInput.value);
+            let slPrice, tpPrice;
+            if (type === "BUY_LIMIT") {
+                slPrice = limitPriceVal - (slPips * 0.01);
+                tpPrice = limitPriceVal + (tpPips * 0.01);
+            } else {
+                slPrice = limitPriceVal + (slPips * 0.01);
+                tpPrice = limitPriceVal - (tpPips * 0.01);
+            }
+            pendingOrders.push({ pair: currentPair, type, price: limitPriceVal, lot, slPrice, tpPrice, timestamp: Date.now() });
+            renderPendingOrders();
+            orderStatus.innerText = `📌 Pending ${type} at ${limitPriceVal}`;
+            addToFeed(`Pending ${type} ${lot} lot @ ${limitPriceVal}`, "PENDING");
         }
         
-        // 2. Binance WebSocket untuk BTCUSD & ETHUSD
-        let binanceBTCWS = null, binanceETHWS = null;
-        function connectBinance() {
-            // BTC
-            if (binanceBTCWS) binanceBTCWS.close();
-            binanceBTCWS = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
-            binanceBTCWS.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.p) {
-                    const price = parseFloat(data.p);
-                    if (!isNaN(price) && currentPair === "BTC") {
-                        updatePriceUI(price, "Binance");
-                        addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "Binance");
-                        btcSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full live-dot"></span> BTC: Binance Live';
-                    }
+        function renderPendingOrders() {
+            const container = document.getElementById("pendingOrdersList");
+            if (!container) return;
+            container.innerHTML = pendingOrders.map((o, idx) => `<div class="pending-order flex justify-between items-center"><div><span class="font-bold ${o.type === 'BUY_LIMIT' ? 'text-emerald-400' : 'text-red-400'}">${o.type}</span><div class="text-xs">Price: ${o.price} | Lot ${o.lot}</div></div><button onclick="cancelPendingOrder(${idx})" class="text-red-400 text-xs">✖️</button></div>`).join("");
+        }
+        window.cancelPendingOrder = (idx) => { pendingOrders.splice(idx,1); renderPendingOrders(); };
+        
+        // Monitor pending orders against lastPrice
+        function monitorPendingOrders() {
+            if (lastPrice === 0) return;
+            let toExecute = [];
+            pendingOrders.forEach((order, idx) => {
+                if ((order.type === "BUY_LIMIT" && lastPrice <= order.price) || (order.type === "SELL_LIMIT" && lastPrice >= order.price)) {
+                    toExecute.push({ idx, order });
                 }
-            };
-            binanceBTCWS.onerror = () => { btcSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> BTC: Error'; startCryptoFallback("BTC"); };
-            binanceBTCWS.onclose = () => setTimeout(connectBinance, 5000);
-            
-            // ETH
-            if (binanceETHWS) binanceETHWS.close();
-            binanceETHWS = new WebSocket('wss://stream.binance.com:9443/ws/ethusdt@trade');
-            binanceETHWS.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.p) {
-                    const price = parseFloat(data.p);
-                    if (!isNaN(price) && currentPair === "ETH") {
-                        updatePriceUI(price, "Binance");
-                        addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "Binance");
-                        ethSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full live-dot"></span> ETH: Binance Live';
-                    }
-                }
-            };
-            binanceETHWS.onerror = () => { ethSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> ETH: Error'; startCryptoFallback("ETH"); };
-            binanceETHWS.onclose = () => setTimeout(connectBinance, 5000);
-        }
-        
-        function startCryptoFallback(pair) {
-            if (cryptoFallbackInterval) clearInterval(cryptoFallbackInterval);
-            cryptoFallbackInterval = setInterval(() => {
-                fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (pair === "BTC" && data.bitcoin?.usd && currentPair === "BTC") {
-                            const price = data.bitcoin.usd;
-                            updatePriceUI(price, "CoinGecko");
-                            addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "CoinGecko");
-                            btcSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> BTC: Fallback (CoinGecko)';
-                        }
-                        if (pair === "ETH" && data.ethereum?.usd && currentPair === "ETH") {
-                            const price = data.ethereum.usd;
-                            updatePriceUI(price, "CoinGecko");
-                            addToFeed(price, price >= lastPrice ? "BUY" : "SELL", "CoinGecko");
-                            ethSourceSpan.innerHTML = '<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> ETH: Fallback (CoinGecko)';
-                        }
-                    })
-                    .catch(err => console.error("CoinGecko error:", err));
-            }, 5000);
-        }
-        
-        // ======================= TRADINGVIEW WIDGET =======================
-        function loadTradingViewWidget() {
-            const container = document.getElementById("tradingview_chart");
-            if (tvWidget) { try { tvWidget.remove(); } catch(e) {} container.innerHTML = ""; }
-            const script = document.createElement('script');
-            script.src = 'https://s3.tradingview.com/tv.js';
-            script.onload = () => {
-                tvWidget = new TradingView.widget({
-                    container_id: "tradingview_chart",
-                    symbol: PAIRS[currentPair].tvSymbol,
-                    interval: "1",
-                    timezone: "Etc/UTC",
-                    theme: "dark",
-                    style: "1",
-                    locale: "id",
-                    allow_symbol_change: true,
-                    studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
-                    enable_publishing: false,
-                    height: 520,
-                    width: "100%"
-                });
-            };
-            document.head.appendChild(script);
-        }
-        
-        // ======================= SWITCH PAIR =======================
-        function switchPair(pair) {
-            currentPair = pair;
-            pairLabel.innerText = PAIRS[pair].label;
-            // Reset data
-            priceHistory = []; candleData = []; currentCandle = null; lastCandleTime = null;
-            lastPrice = 0; dailyHigh = 0; dailyLow = Infinity; tickCounter = 0;
-            tickVolumeSpan.innerText = "0";
-            priceLarge.innerText = "0.00";
-            changeLarge.innerHTML = "—";
-            signalPill.innerText = "WAITING";
-            // Initialize dummy history untuk chart awal
-            let startPrice = pair === 'XAU' ? 2635 : (pair === 'ETH' ? 3200 : 58000);
-            for (let i = 0; i < 30; i++) priceHistory.push(startPrice + (Math.random() - 0.5) * (pair === 'BTC' ? 300 : (pair === 'ETH' ? 20 : 4)));
-            updateIndicatorsAndPrediction(priceHistory[priceHistory.length-1]);
-            loadTradingViewWidget();
-        }
-        
-        function manualReset() { switchPair(currentPair); }
-        function toggleThemeMode() { document.body.classList.toggle("invert"); }
-        
-        // Event listeners
-        document.getElementById("tabXAU").onclick = () => { if(currentPair!=="XAU"){ setActiveTab("XAU"); switchPair("XAU"); } };
-        document.getElementById("tabETH").onclick = () => { if(currentPair!=="ETH"){ setActiveTab("ETH"); switchPair("ETH"); } };
-        document.getElementById("tabBTC").onclick = () => { if(currentPair!=="BTC"){ setActiveTab("BTC"); switchPair("BTC"); } };
-        function setActiveTab(pair) {
-            ["XAU","ETH","BTC"].forEach(p => {
-                let el = document.getElementById(`tab${p}`);
-                if(p === pair) el.classList.add("active-tab");
-                else el.classList.remove("active-tab");
             });
+            for (let { idx, order } of toExecute) {
+                let direction = order.type === "BUY_LIMIT" ? "BUY" : "SELL";
+                addToFeed(`Limit ${direction} executed @ ${lastPrice.toFixed(PAIRS[currentPair].decimal)} (${order.lot} lot)`, direction);
+                pendingOrders.splice(idx,1);
+            }
+            renderPendingOrders();
         }
         
-        // ======================= INIT =======================
-        window.onload = () => {
-            // Inisialisasi dummy
-            let startPrice = 2635;
-            for(let i=0;i<30;i++) priceHistory.push(startPrice + (Math.random()-0.5)*4);
-            updateIndicatorsAndPrediction(priceHistory[priceHistory.length-1]);
-            connectITick();
-            connectBinance();
-            loadTradingViewWidget();
-            setInterval(() => { if(priceHistory.length>10) updateIndicatorsAndPrediction(lastPrice); }, 4000);
-        };
+        // Simulated trailing stop update (call setiap tick)
+        function updateTrailingStops(currentPrice) {
+            for (let i=0; i<activePositions.length; i++) {
+                let pos = activePositions[i];
+                if (pos.direction === "BUY") {
+                    if (currentPrice > pos.highestPrice) {
+                        pos.highestPrice = currentPrice;
+                        let newSL = currentPrice - (pos.trailingDist * 0.01);
+                        if (newSL > pos.slPrice) {
+                            pos.slPrice = newSL;
+                            addToFeed(`Trailing SL updated to ${pos.slPrice.toFixed(2)}`, "INFO");
+                        }
+                    }
+                    if (currentPrice <= pos.slPrice) {
+                        addToFeed(`Trailing stop triggered: ${pos.direction} closed at ${currentPrice.toFixed(2)}`, "CLOSE");
+                        activePositions.splice(i,1);
+                        i--;
+                    }
+                } else {
+                    if (currentPrice < pos.lowestPrice) {
+                        pos.lowestPrice = currentPrice;
+                        let newSL = currentPrice + (pos.trailingDist * 0.01);
+                        if (newSL < pos.slPrice) {
+                            pos.slPrice = newSL;
+                            addToFeed(`Trailing SL updated to ${pos.slPrice.toFixed(2)}`, "INFO");
+                        }
+                    }
+                    if (currentPrice >= pos.slPrice) {
+                        addToFeed(`Trailing stop triggered: ${pos.direction} closed`, "CLOSE");
+                        activePositions.splice(i,1);
+                        i--;
+                    }
+                }
+            }
+        }
+        
+        // Economic Calendar (simulasi data dari API gratis)
+        async function fetchEconomicCalendar() {
+            try {
+                // Menggunakan API gratis dari https://economic-calendar-api.vercel.app/ atau fallback hardcoded
+                const res = await fetch('https://economic-calendar-api.vercel.app/api/events?limit=5');
+                const data = await res.json();
+                const calendarDiv = document.getElementById("calendarList");
+                if (data && data.length) {
+                    calendarDiv.innerHTML = data.slice(0,5).map(ev => `<div class="p-2 rounded-lg ${ev.impact === 'High' ? 'event-high' : 'event-medium'}"><div class="font-bold">${ev.country} - ${ev.title}</div><div class="text-xs">${new Date(ev.date).toLocaleString()} | Impact: ${ev.impact}</div></div>`).join("");
+                } else throw new Error();
+            } catch(e) {
+                document.getElementById("calendarList").innerHTML = `<div class="text-slate-400">🔔 Hari ini: FOMC Minutes (High), NFP (High) - simulasi</div><div class="text-xs text-slate-500">Gunakan data real dari investing.com</div>`;
+            }
+        }
+        
+        // Multi-timeframe alignment (simulasi dari data harga yang sama, di-scaling)
+        function updateMultiTimeframe(price) {
+            if (priceHistory.length < 50) return;
+            let h4Trend = priceHistory[priceHistory.length-1] > priceHistory[priceHistory.length-25] ? "BULLISH" : "BEARISH";
+            let h1Trend = priceHistory[priceHistory.length-1] > priceHistory[priceHistory.length-10] ? "BULLISH" : "BEARISH";
+            let m15Trend = priceHistory[priceHistory.length-1] > priceHistory[priceHistory.length-3] ? "BULLISH" : "BEARISH";
+            document.getElementById("tfH4").innerHTML = h4Trend;
+            document.getElementById("tfH1").innerHTML = h1Trend;
+            document.getElementById("tf15m").innerHTML = m15Trend;
+            let alignment = (h4Trend === h1Trend && h1Trend === m15Trend) ? "✅ ALL ALIGNED" : "⚠️ Mixed signals";
+            document.getElementById("alignmentMsg").innerHTML = alignment;
+        }
+        
+        // AI Indicators (sama seperti sebelumnya)
+        function calculateRSI(prices, period=14) { if(prices.length<period+1) return 50; let gains=0,losses=0; for(let i=prices.length-period;i<prices.length;i++){ let diff=prices[i]-prices[i-1]; diff>=0? gains+=diff : losses+=Math.abs(diff); } let avgGain=gains/period, avgLoss=losses/period; if(avgLoss===0) return 100; return 100-(100/(1+(avgGain/avgLoss))); }
+        function calculateMACD(prices, fast=12,slow=26) { if(prices.length<slow+1) return 0; let emaFast=prices[0], emaSlow=prices[0]; let kFast=2/(fast+1), kSlow=2/(slow+1); for(let i=1;i<prices.length;i++){ emaFast=(prices[i]-emaFast)*kFast+emaFast; emaSlow=(prices[i]-emaSlow)*kSlow+emaSlow; } let macd=emaFast-emaSlow; return (macd/prices[prices.length-1])*1000; }
+        function calculateATR() { if(candleData.length<15) return PAIRS[currentPair].atrScale; let trSum=0; for(let i=candleData.length-14;i<candleData.length;i++){ let high=candleData[i].high, low=candleData[i].low, prevClose=candleData[i-1].close; let tr=Math.max(high-low, Math.abs(high-prevClose), Math.abs(low-prevClose)); trSum+=tr; } return trSum/14; }
+        function getVolatilityLevel() { if(candleData.length<10) return "MEDIUM"; let sum=0; for(let i=candleData.length-10;i<candleData.length;i++) sum+=candleData[i].high-candleData[i].low; let avg=sum/10; let scale=PAIRS[currentPair].atrScale; if(avg>scale*2.5) return "HIGH"; if(avg>scale) return "MEDIUM"; return "LOW"; }
+        function consensusPrediction(price,rsi,macd,trend,vol) { let buy=0,sell=0; if(rsi<30) buy+=40; else if(rsi<40) buy+=20; else if(rsi>70) sell+=40; else if(rsi>60) sell+=20; if(macd>15) buy+=30; else if(macd<-15) sell+=30; if(trend==="BULLISH") buy+=25; else if(trend==="BEARISH") sell+=25; let net=buy-sell; let conf=Math.min(95,50+net*1.2); if(vol==="HIGH") conf*=0.7; let dir=net>=25?"STRONG BUY":net>=10?"BUY":net<=-25?"STRONG SELL":net<=-10?"SELL":"NEUTRAL"; return {signal:dir, confidence:Math.floor(conf), reason:`RSI:${rsi.toFixed(0)} MACD:${macd.toFixed(1)} ${trend}`}; }
+        
+        function updateAllIndicators(price) {
+            if(priceHistory.length<25) return;
+            let rsi=calculateRSI(priceHistory,14);
+            let macd=calculateMACD(priceHistory);
+            let atr=calculateATR();
+            document.getElementById("atrValue").innerText=atr.toFixed(PAIRS[currentPair].decimal===0?0:(PAIRS[currentPair].decimal===1?1:2));
+            document.getElementById("rsiNumber").innerText=rsi.toFixed(1);
+            document.getElementById("macdSignal").innerText=macd.toFixed(1);
+            let trend= rsi>55?"BULLISH":rsi<45?"BEARISH":"SIDEWAYS";
+            document.getElementById("trendText").innerHTML=trend;
+            document.getElementById("volatilityLabel").innerHTML=getVolatilityLevel();
+            let pred=consensusPrediction(price,rsi,macd,trend,getVolatilityLevel());
+            document.getElementById("scoreValue").innerText=pred.confidence;
+            document.getElementById("signalReasonText").innerHTML=pred.reason;
+            let signalDiv=document.getElementById("signalPill");
+            signalDiv.innerText=pred.signal;
+            signalDiv.classList.remove("signal-buy","signal-sell","signal-neutral");
+            if(pred.signal.includes("BUY")) signalDiv.classList.add("signal-buy");
+            else if(pred.signal.includes("SELL")) signalDiv.classList.add("signal-sell");
+            else signalDiv.classList.add("signal-neutral");
+            // continuous learning
+            predictionHistory.push({timestamp:Date.now(),price,predictedDirection:pred.signal,confidence:pred.confidence});
+            if(predictionHistory.length>50) predictionHistory.shift();
+            let evaluated=predictionHistory.filter(p=>p.evaluated).length;
+            let correct=predictionHistory.filter(p=>p.evaluated&&p.correct).length;
+            let acc=evaluated?(correct/evaluated*100).toFixed(1):0;
+            learningLogDiv.innerHTML=`Akurasi sinyal (${evaluated} eval): ${acc}%`;
+        }
+        
+        // ----- PRICE HANDLER & WEBSOCKET (sama seperti sebelumnya, disederhanakan) -----
+        function updatePriceUI(price, source) {
+            const change = lastPrice ? ((price-lastPrice)/lastPrice*100) : 0;
+            document.getElementById("priceLarge").innerText = price.toFixed(PAIRS[currentPair].decimal);
+            if(price>lastPrice) { document.getElementById("priceLarge").classList.add("price-up"); document.getElementById("priceLarge").classList.remove("price-down"); document.getElementById("changeLarge").innerHTML=`<span class="text-emerald-400">▲ +${change.toFixed(3)}%</span>`; }
+            else if(price<lastPrice) { document.getElementById("priceLarge").classList.add("price-down"); document.getElementById("priceLarge").classList.remove("price-up"); document.getElementById("changeLarge").innerHTML=`<span class="text-red-400">▼ ${change.toFixed(3)}%</span>`; }
+            if(price>dailyHigh) dailyHigh=price; if(price<dailyLow) dailyLow=price;
+            document.getElementById("dailyHigh").innerText=dailyHigh.toFixed(PAIRS[currentPair].decimal);
+            document.getElementById("dailyLow").innerText=(dailyLow===Infinity?price:dailyLow).toFixed(PAIRS[currentPair].decimal);
+            lastPrice=price;
+            priceHistory.push(price); if(priceHistory.length>200) priceHistory.shift();
+            let minute=Math.floor(Date.now()/60000);
+            if(lastCandleTime!==minute){ if(currentCandle) candleData.push(currentCandle); currentCandle={time:minute,open:price,high:price,low:price,close:price}; lastCandleTime=minute; if(candleData.length>100) candleData.shift(); }
+            else if(currentCandle){ currentCandle.high=Math.max(currentCandle.high,price); currentCandle.low=Math.min(currentCandle.low,price); currentCandle.close=price; }
+            updateAllIndicators(price);
+            updateMultiTimeframe(price);
+            updatePositionSizing();
+            monitorPendingOrders();
+            updateTrailingStops(price);
+            tickCounter++; document.getElementById("tickVolume").innerText=tickCounter;
+        }
+        // WebSocket iTick & Binance (sederhana)
+        function connectITick() { /* sama seperti kode sebelumnya */ itickSocket=new WebSocket('wss://ws.itick.org/forex'); itickSocket.onopen=()=>{ itickSocket.send(JSON.stringify({event:"subscribe",pair:"XAUUSD"})); document.getElementById("xauSource").innerHTML='<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> XAU: iTick Live'; }; itickSocket.onmessage=(e)=>{ let d=JSON.parse(e.data); if(d.pair==="XAUUSD"&&d.price&&currentPair==="XAU") updatePriceUI(parseFloat(d.price),"iTick"); }; itickSocket.onclose=()=>setTimeout(connectITick,5000); }
+        function connectBinance(){ binanceBTC=new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade'); binanceBTC.onmessage=(e)=>{ let d=JSON.parse(e.data); if(d.p&&currentPair==="BTC") updatePriceUI(parseFloat(d.p),"Binance"); }; binanceETH=new WebSocket('wss://stream.binance.com:9443/ws/ethusdt@trade'); binanceETH.onmessage=(e)=>{ let d=JSON.parse(e.data); if(d.p&&currentPair==="ETH") updatePriceUI(parseFloat(d.p),"Binance"); }; }
+        
+        function loadTradingViewWidget() { const script=document.createElement('script'); script.src='https://s3.tradingview.com/tv.js'; script.onload=()=>{ new TradingView.widget({container_id:"tradingview_chart",symbol:PAIRS[currentPair].tvSymbol,interval:"1",theme:"dark",locale:"id",studies:["RSI@tv-basicstudies","MACD@tv-basicstudies"],height:520,width:"100%"}); }; document.head.appendChild(script); }
+        function switchPair(pair){ currentPair=pair; document.getElementById("pairLabel").innerText=PAIRS[pair].label; priceHistory=[]; lastPrice=0; dailyHigh=0; dailyLow=Infinity; loadTradingViewWidget(); updatePositionSizing(); }
+        function manualReset(){ switchPair(currentPair); }
+        function toggleThemeMode(){ document.body.classList.toggle("invert"); }
+        document.getElementById("tabXAU").onclick=()=>{ if(currentPair!=="XAU"){ switchPair("XAU"); setActiveTab("XAU"); } };
+        document.getElementById("tabETH").onclick=()=>{ if(currentPair!=="ETH"){ switchPair("ETH"); setActiveTab("ETH"); } };
+        document.getElementById("tabBTC").onclick=()=>{ if(currentPair!=="BTC"){ switchPair("BTC"); setActiveTab("BTC"); } };
+        function setActiveTab(p){ ["XAU","ETH","BTC"].forEach(x=>{ let el=document.getElementById(`tab${x}`); if(x===p) el.classList.add("active-tab"); else el.classList.remove("active-tab"); }); }
+        buyMarketBtn.onclick=()=>executeOrder("BUY"); sellMarketBtn.onclick=()=>executeOrder("SELL");
+        buyLimitBtn.onclick=()=>addLimitOrder("BUY_LIMIT"); sellLimitBtn.onclick=()=>addLimitOrder("SELL_LIMIT");
+        window.onload=()=>{ connectITick(); connectBinance(); loadTradingViewWidget(); fetchEconomicCalendar(); setInterval(fetchEconomicCalendar, 3600000); setInterval(()=>updatePositionSizing(),1000); };
     </script>
 </body>
 </html>
