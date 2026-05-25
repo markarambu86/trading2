@@ -12,8 +12,6 @@
         body { font-family: 'Inter', sans-serif; background: #020617; color: #e2e8f0; }
         .card { background: #081018; border: 1px solid #1e293b; border-radius: 24px; }
         .metric { background: #0f172a; border-radius: 18px; padding: 20px; }
-        .signal-buy { animation: pulseBuy 2s infinite; }
-        .signal-sell { animation: pulseSell 2s infinite; }
         
         @keyframes pulseBuy { 0%, 100% { box-shadow: 0 0 30px #22c55e; } 50% { box-shadow: 0 0 50px #22c55e; } }
         @keyframes pulseSell { 0%, 100% { box-shadow: 0 0 30px #ef4444; } 50% { box-shadow: 0 0 50px #ef4444; } }
@@ -27,18 +25,16 @@
             <div class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-violet-500 bg-clip-text text-transparent">ECC</div>
             <div>
                 <div class="text-2xl font-bold tracking-tighter">INSTITUTIONAL AI TERMINAL</div>
-                <div class="text-xs text-emerald-400 tracking-widest">BINANCE • FINNHUB • REAL-TIME</div>
+                <div class="text-xs text-emerald-400">REAL-TIME • BINANCE • FINNHUB</div>
             </div>
         </div>
         
-        <div class="flex items-center gap-4">
-            <select id="symbolSelect" onchange="switchPair(this.value)" 
-                    class="bg-slate-900 border border-slate-700 rounded-2xl px-6 py-3 text-base font-medium focus:outline-none focus:border-cyan-500">
-                <option value="XAUUSD">XAUUSD - Gold</option>
-                <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
-                <option value="ETHUSDT">ETHUSDT - Ethereum</option>
-            </select>
-        </div>
+        <select id="symbolSelect" onchange="switchPair(this.value)" 
+                class="bg-slate-900 border border-slate-700 rounded-2xl px-6 py-3 text-base font-medium focus:outline-none focus:border-cyan-500">
+            <option value="XAUUSD">XAUUSD - Gold</option>
+            <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
+            <option value="ETHUSDT">ETHUSDT - Ethereum</option>
+        </select>
     </div>
 </header>
 
@@ -47,7 +43,7 @@
     <!-- Price Header -->
     <div class="card p-8 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-            <div id="pairDisplay" class="text-6xl font-black"></div>
+            <div id="pairDisplay" class="text-6xl font-black text-white">XAUUSD</div>
             <div id="priceDisplay" class="text-8xl font-black tabular-nums text-white">0.00</div>
             <div id="changeDisplay" class="text-2xl font-medium"></div>
         </div>
@@ -57,57 +53,56 @@
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <!-- Lightweight Chart -->
         <div class="lg:col-span-3 card p-6">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between mb-4">
                 <h3 class="font-bold text-xl">ECC Live Chart</h3>
-                <div class="text-emerald-400 font-medium">AI Confidence: <span id="confidence">87</span>%</div>
+                <div>AI Confidence: <span id="confidence" class="text-emerald-400 font-bold">—</span>%</div>
             </div>
-            <div id="chart" class="w-full h-[520px]"></div>
+            <div id="chart" class="w-full h-[520px] bg-[#0a1420] rounded-2xl"></div>
         </div>
 
         <!-- TradingView -->
         <div class="lg:col-span-2 card p-6">
             <h3 class="font-bold text-xl mb-4">TradingView Professional</h3>
-            <div id="tv-widget" class="w-full h-[520px] rounded-2xl overflow-hidden"></div>
+            <div id="tv-widget" class="w-full h-[520px] bg-[#0a1420] rounded-2xl overflow-hidden"></div>
         </div>
     </div>
 
+    <!-- Indicators -->
     <div class="grid md:grid-cols-2 gap-6">
-        <!-- AI Signal -->
         <div class="card p-8">
             <h3 class="text-2xl font-bold mb-6">ECC AI QUANT SIGNAL</h3>
-            <div id="signalReason" class="text-slate-400 mb-6 text-lg"></div>
+            <div id="signalReason" class="text-slate-400 text-lg mb-6"></div>
             
             <div class="grid grid-cols-2 gap-6">
                 <div class="metric">
-                    <div class="text-xs text-slate-400 mb-2">STOP LOSS</div>
-                    <div id="slDisplay" class="text-4xl font-bold text-red-400">-</div>
+                    <div class="text-xs text-slate-400">STOP LOSS</div>
+                    <div id="slDisplay" class="text-4xl font-bold text-red-400">—</div>
                 </div>
                 <div class="metric">
-                    <div class="text-xs text-slate-400 mb-2">TAKE PROFIT</div>
-                    <div id="tpDisplay" class="text-4xl font-bold text-emerald-400">-</div>
+                    <div class="text-xs text-slate-400">TAKE PROFIT</div>
+                    <div id="tpDisplay" class="text-4xl font-bold text-emerald-400">—</div>
                 </div>
             </div>
         </div>
 
-        <!-- Market Intelligence -->
         <div class="card p-8">
             <h3 class="text-2xl font-bold mb-6">MARKET INTELLIGENCE</h3>
             <div class="grid grid-cols-2 gap-6">
                 <div class="metric">
                     <div class="text-xs text-slate-400">RSI (14)</div>
-                    <div id="rsiDisplay" class="text-5xl font-bold">58.4</div>
+                    <div id="rsiDisplay" class="text-5xl font-bold">—</div>
                 </div>
                 <div class="metric">
                     <div class="text-xs text-slate-400">TREND</div>
-                    <div id="trendDisplay" class="text-4xl font-bold text-emerald-400">BULLISH</div>
+                    <div id="trendDisplay" class="text-4xl font-bold text-emerald-400">—</div>
                 </div>
                 <div class="metric">
                     <div class="text-xs text-slate-400">FUNDING RATE</div>
-                    <div id="fundingDisplay" class="text-4xl font-bold text-amber-400">0.0087%</div>
+                    <div id="fundingDisplay" class="text-4xl font-bold text-amber-400">—</div>
                 </div>
                 <div class="metric">
                     <div class="text-xs text-slate-400">AI SCORE</div>
-                    <div id="aiScore" class="text-5xl font-bold text-violet-400">86%</div>
+                    <div id="aiScore" class="text-5xl font-bold text-violet-400">—</div>
                 </div>
             </div>
         </div>
@@ -115,18 +110,127 @@
 </div>
 
 <script>
-// ==================== CONFIG ====================
-let currentPair = "XAUUSD";
+// Variabel global
 let chart, candleSeries;
+let currentPair = "XAUUSD";
 
-// Assets
 const assets = {
-    "XAUUSD": { name: "XAUUSD", tv: "OANDA:XAU_USD", binance: "XAUUSDT" },
-    "BTCUSDT": { name: "BTCUSDT", tv: "BINANCE:BTCUSDT", binance: "BTCUSDT" },
-    "ETHUSDT": { name: "ETHUSDT", tv: "BINANCE:ETHUSDT", binance: "ETHUSDT" }
+    "XAUUSD": { name: "XAUUSD", tv: "OANDA:XAU_USD" },
+    "BTCUSDT": { name: "BTCUSDT", tv: "BINANCE:BTCUSDT" },
+    "ETHUSDT": { name: "ETHUSDT", tv: "BINANCE:ETHUSDT" }
 };
 
 // Inisialisasi Lightweight Chart
-function initChart() {
-    chart = LightweightCharts.createChart(document.getElementById('chart'), {
-        layout: { background:
+function initLightweightChart() {
+    const chartContainer = document.getElementById('chart');
+    chart = LightweightCharts.createChart(chartContainer, {
+        width: chartContainer.clientWidth,
+        height: 520,
+        layout: { background: { color: '#0a1420' }, textColor: '#cbd5e1' },
+        grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+        timeScale: { timeVisible: true }
+    });
+    candleSeries = chart.addCandlestickSeries({
+        upColor: '#22c55e', downColor: '#ef4444',
+        borderUpColor: '#22c55e', borderDownColor: '#ef4444'
+    });
+
+    // Dummy candle data
+    candleSeries.setData([
+        { time: '2025-05-01', open: 2630, high: 2650, low: 2620, close: 2645 },
+        { time: '2025-05-02', open: 2645, high: 2670, low: 2640, close: 2660 },
+        { time: '2025-05-03', open: 2660, high: 2680, low: 2655, close: 2672 },
+    ]);
+}
+
+// Inisialisasi TradingView Widget
+function initTradingView() {
+    const widget = document.getElementById('tv-widget');
+    widget.innerHTML = `
+        <iframe 
+            src="https://www.tradingview.com/widgetembed/?symbol=${assets[currentPair].tv}&interval=15&theme=dark&style=1" 
+            width="100%" 
+            height="100%" 
+            frameborder="0" 
+            allowtransparency="true">
+        </iframe>`;
+}
+
+// Generate Signal
+function generateSignal(price, rsi) {
+    let signal = "NEUTRAL";
+    let confidence = 50;
+    let reason = "Waiting for confirmation...";
+
+    if (rsi < 35) {
+        signal = "STRONG BUY";
+        confidence = 88;
+        reason = "Oversold condition detected";
+    } else if (rsi > 65) {
+        signal = "STRONG SELL";
+        confidence = 85;
+        reason = "Overbought condition detected";
+    } else if (rsi < 45) {
+        signal = "BUY";
+        confidence = 72;
+        reason = "Potential reversal upward";
+    }
+
+    return { signal, confidence, reason };
+}
+
+// Update semua data
+function updateData() {
+    const basePrice = currentPair === "XAUUSD" ? 2658 : currentPair === "BTCUSDT" ? 68250 : 3480;
+    const price = (basePrice + (Math.random() * 80 - 40)).toFixed(2);
+    const change = (Math.random() * 1.8 - 0.9).toFixed(2);
+    const rsi = (42 + Math.random() * 28).toFixed(1);
+    const trend = rsi > 50 ? "BULLISH" : "BEARISH";
+
+    // Update Price
+    document.getElementById('priceDisplay').textContent = parseFloat(price).toLocaleString('id-ID');
+    document.getElementById('changeDisplay').innerHTML = 
+        change > 0 ? 
+        `<span class="text-emerald-400">▲ +${change}%</span>` : 
+        `<span class="text-red-400">▼ ${change}%</span>`;
+
+    // Generate Signal
+    const sig = generateSignal(price, rsi);
+    const signalEl = document.getElementById('mainSignal');
+    signalEl.textContent = sig.signal;
+    signalEl.style.backgroundColor = sig.signal.includes("BUY") ? "#052e16" : "#450a0a";
+    signalEl.style.color = sig.signal.includes("BUY") ? "#4ade80" : "#f87171";
+    signalEl.style.border = sig.signal.includes("BUY") ? "1px solid #4ade80" : "1px solid #f87171";
+
+    document.getElementById('signalReason').textContent = sig.reason;
+    document.getElementById('confidence').textContent = sig.confidence;
+    document.getElementById('rsiDisplay').textContent = rsi;
+    document.getElementById('trendDisplay').textContent = trend;
+    document.getElementById('aiScore').textContent = sig.confidence;
+}
+
+// Switch Pair
+function switchPair(pair) {
+    currentPair = pair;
+    document.getElementById('pairDisplay').textContent = assets[pair].name;
+    initTradingView();   // reload TradingView
+    updateData();
+}
+
+// Initialize Semua
+window.onload = function() {
+    initLightweightChart();
+    initTradingView();
+    updateData();
+
+    // Update setiap 3 detik
+    setInterval(updateData, 3000);
+
+    // Resize chart
+    window.addEventListener('resize', () => {
+        if (chart) chart.resize(document.getElementById('chart').clientWidth, 520);
+    });
+};
+</script>
+</body>
+</html>
