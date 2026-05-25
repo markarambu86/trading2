@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ECC Lite Trading Terminal - Perfected</title>
+<title>ECC Lite Trading Terminal - Multi-Asset</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
@@ -23,6 +23,9 @@ font-family:'Inter',sans-serif;
 background:#020617;
 color:#e2e8f0;
 overflow-x:hidden;
+/* Transisi mulus saat web diperbesar/diperkecil */
+transition: transform 0.2s ease, transform-origin 0.2s ease; 
+transform-origin: top center;
 }
 
 .card{
@@ -57,6 +60,20 @@ button:hover{
 transform:translateY(-2px);
 }
 
+/* Style khusus tombol zoom */
+.zoom-btn {
+background: #1e293b;
+color: #f1f5f9;
+border: 1px solid #334155;
+padding: 6px 12px;
+border-radius: 10px;
+font-weight: bold;
+font-size: 14px;
+}
+.zoom-btn:hover {
+background: #334155;
+}
+
 ::-webkit-scrollbar{
 width:7px;
 }
@@ -70,6 +87,7 @@ border-radius:10px;
 
 <body>
 
+<!-- HEADER -->
 <header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur border-b border-slate-800">
 <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
 <div>
@@ -77,25 +95,35 @@ border-radius:10px;
 ECC LITE TERMINAL
 </div>
 <div class="text-xs text-slate-400">
-REALTIME • LIGHTWEIGHT • SMART MONEY • OPTIMIZED
+REALTIME • MULTI-ASSET • SMART MONEY • ZOOMABLE
 </div>
 </div>
 
-<div class="flex items-center gap-4">
-<div id="clock" class="font-mono"></div>
-<div class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">
+<div class="flex items-center gap-4 flex-wrap">
+<!-- CONTROLLER ZOOM (Perbesar / Perkecil Web) -->
+<div class="flex items-center gap-2 bg-[#0f172a] p-1.5 rounded-2xl border border-slate-800">
+<span class="text-xs text-slate-400 px-2 font-semibold">TAMPILAN:</span>
+<button onclick="adjustZoom(-0.1)" class="zoom-btn">A-</button>
+<button onclick="resetZoom()" id="zoomPercent" class="zoom-btn text-xs font-mono">100%</button>
+<button onclick="adjustZoom(0.1)" class="zoom-btn">A+</button>
+</div>
+
+<div id="clock" class="font-mono bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-800 text-sm"></div>
+<div class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
 LIVE
 </div>
 </div>
 </div>
 </header>
 
+<!-- CONTENT -->
 <div class="max-w-7xl mx-auto p-4 space-y-4">
 
+<!-- TOP -->
 <div class="card p-5">
 <div class="flex flex-wrap justify-between items-center gap-5">
 <div>
-<div id="pairText" class="text-4xl font-black">BTCUSDT</div>
+<div id="pairText" class="text-4xl font-black">XAUUSD</div>
 <div id="priceText" class="text-5xl font-black buy">0.00</div>
 <div id="statusText" class="text-slate-400 mt-2">Waiting market...</div>
 </div>
@@ -103,12 +131,15 @@ LIVE
 </div>
 </div>
 
+<!-- CHART -->
 <div class="card p-4">
 <div id="chart" class="w-full h-[450px]"></div>
 </div>
 
+<!-- SIGNAL & ANALYTICS -->
 <div class="grid md:grid-cols-2 gap-4">
 
+<!-- SIGNAL -->
 <div class="card p-5">
 <div class="flex justify-between items-center mb-5">
 <div class="text-2xl font-black">AI SIGNAL</div>
@@ -130,6 +161,7 @@ LIVE
 </div>
 </div>
 
+<!-- ANALYTICS -->
 <div class="card p-5">
 <div class="text-2xl font-black mb-5">MARKET DATA</div>
 <div class="grid grid-cols-2 gap-4">
@@ -157,18 +189,53 @@ LIVE
 
 <script>
 // ======================================
+// CONFIG & PAIRS
+// ======================================
+// Menggunakan XAUTUSDT (Tether Gold Futures) untuk mensimulasikan XAUUSD 24/7 secara akurat
+const assetMapping = {
+    'XAUUSD': { symbol: 'xautusdt', type: 'futures', displayName: 'XAU/USD (Gold)' },
+    'ETHUSDT': { symbol: 'ethusdt', type: 'spot', displayName: 'ETH/USDT (Ethereum)' }
+};
+
+// ======================================
 // STATE
 // ======================================
 const state = {
-    pair: 'BTCUSDT',
+    pair: 'XAUUSD',
     ws: null,
     prices: [],
     candles: [],
     currentCandle: null,
     lastPrice: 0,
     vwapPV: 0,
-    vwapVolume: 0
+    vwapVolume: 0,
+    currentZoom: 1.0 // Default zoom web
 };
+
+// ======================================
+// ZOOM CONTROLLER (Fungsi Perbesar / Perkecil)
+// ======================================
+function adjustZoom(amount) {
+    state.currentZoom = Math.min(1.5, Math.max(0.7, state.currentZoom + amount));
+    applyZoom();
+}
+
+function resetZoom() {
+    state.currentZoom = 1.0;
+    applyZoom();
+}
+
+function applyZoom() {
+    document.body.style.transform = `scale(${state.currentZoom})`;
+    document.body.style.width = `${100 / state.currentZoom}%`;
+    document.getElementById('zoomPercent').innerHTML = `${Math.round(state.currentZoom * 100)}%`;
+    
+    // Resize chart secara otomatis agar pas setelah ukuran layar berubah
+    setTimeout(() => {
+        const chartContainer = document.getElementById('chart');
+        chart.resize(chartContainer.clientWidth, 450);
+    }, 250);
+}
 
 // ======================================
 // CLOCK
@@ -178,24 +245,23 @@ setInterval(() => {
 }, 1000);
 
 // ======================================
-// PAIRS
-// ======================================
-const pairs = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-
-// ======================================
-// BUTTONS
+// BUTTONS GENERATOR
 // ======================================
 function createButtons() {
     const container = document.getElementById('pairButtons');
     container.innerHTML = '';
 
-    pairs.forEach(pair => {
+    Object.keys(assetMapping).forEach(pairKey => {
         const btn = document.createElement('button');
-        btn.className = `px-4 py-2 rounded-xl font-bold ${pair === state.pair ? 'bg-emerald-500 text-white' : 'bg-slate-800'}`;
-        btn.innerHTML = pair.replace('USDT', '');
+        btn.className = `px-5 py-2.5 rounded-xl font-bold border ${
+            pairKey === state.pair 
+            ? 'bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/20' 
+            : 'bg-slate-800 text-slate-300 border-slate-700'
+        }`;
+        btn.innerHTML = pairKey === 'XAUUSD' ? '🥇 XAU/USD (GOLD)' : '🔷 ETHEREUM';
         btn.onclick = () => {
-            state.pair = pair;
-            document.getElementById('pairText').innerHTML = pair;
+            state.pair = pairKey;
+            document.getElementById('pairText').innerHTML = pairKey;
             resetData();
             createButtons();
             connectWS();
@@ -205,7 +271,7 @@ function createButtons() {
 }
 
 // ======================================
-// RESET (Optimized)
+// RESET
 // ======================================
 function resetData() {
     state.prices = [];
@@ -214,7 +280,6 @@ function resetData() {
     state.vwapPV = 0;
     state.vwapVolume = 0;
     
-    // Membersihkan grafik TradingView secara eksplisit dari data koin sebelumnya
     if (candleSeries) candleSeries.setData([]);
     if (emaSeries) emaSeries.setData([]);
 }
@@ -235,14 +300,29 @@ const chart = LightweightCharts.createChart(
 const candleSeries = chart.addCandlestickSeries();
 const emaSeries = chart.addLineSeries({ lineWidth: 2, color: '#38bdf8' });
 
+// Pantau ukuran layar jika user mengubah ukuran browser manual
+window.addEventListener('resize', () => {
+    const chartContainer = document.getElementById('chart');
+    chart.resize(chartContainer.clientWidth, 450);
+});
+
 // ======================================
-// CONNECT WEBSOCKET
+// CONNECT WEBSOCKET (Hybrid Spot & Futures)
 // ======================================
 function connectWS() {
     if (state.ws) state.ws.close();
 
-    const symbol = state.pair.toLowerCase();
-    state.ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`);
+    const activeAsset = assetMapping[state.pair];
+    let wsUrl = '';
+
+    // Seleksi Endpoint WebSocket berdasarkan tipe Aset (Spot vs Futures)
+    if (activeAsset.type === 'futures') {
+        wsUrl = `wss://fstream.binance.com/ws/${activeAsset.symbol}@trade`;
+    } else {
+        wsUrl = `wss://stream.binance.com:9443/ws/${activeAsset.symbol}@trade`;
+    }
+
+    state.ws = new WebSocket(wsUrl);
 
     state.ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -265,7 +345,7 @@ function updatePrice(price) {
         el.className = 'text-5xl font-black sell';
     }
     
-    el.innerHTML = price.toLocaleString('en-US', { minimumFractionDigits: 2 });
+    el.innerHTML = price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     state.lastPrice = price;
     state.prices.push(price);
 
@@ -276,7 +356,7 @@ function updatePrice(price) {
 // BUILD CANDLE
 // ======================================
 function buildCandle(price, volume) {
-    const time = Math.floor(Date.now() / 60000) * 60; // Pembulatan ke menit terdekat
+    const time = Math.floor(Date.now() / 60000) * 60;
 
     if (!state.currentCandle) {
         state.currentCandle = { time, open: price, high: price, low: price, close: price };
@@ -310,14 +390,14 @@ function updateChart() {
     candleSeries.update(state.currentCandle);
 
     const closes = state.candles.map(c => c.close);
-    closes.push(state.currentCandle.close); // Sertakan harga terkini untuk kalkulasi real-time
+    closes.push(state.currentCandle.close);
 
     const ema = EMA(20, closes);
     emaSeries.update({ time: state.currentCandle.time, value: ema });
 }
 
 // ======================================
-// INDICATORS: EMA & RSI (Fixed)
+// INDICATORS: EMA & RSI
 // ======================================
 function EMA(period, data) {
     if (data.length < period) return data[data.length - 1] || 0;
@@ -330,13 +410,10 @@ function EMA(period, data) {
 }
 
 function RSI() {
-    // Membutuhkan minimal data yang cukup untuk kalkulasi 14 periode
     if (state.candles.length < 15) return 50;
 
     let gains = 0;
     let losses = 0;
-
-    // Perbaikan Bug: Membatasi kalkulasi hanya pada 14 lilin terakhir (Standard RSI-14)
     const startIndex = state.candles.length - 14;
 
     for (let i = startIndex; i < state.candles.length; i++) {
@@ -375,7 +452,6 @@ function generateSignal() {
     let score = 50;
     let reason = 'Market sideways / No confirmation';
 
-    // Logika Strategi Tren Berdasarkan EMA & Momentum RSI
     if (current > ema && rsi > 55) {
         signal = 'BUY';
         score = Math.min(95, Math.floor(50 + (rsi - 50) * 2));
@@ -421,7 +497,6 @@ function updateUI(signal, score, reason, rsi, vwap, current) {
     document.getElementById('vwapText').innerHTML = vwap.toLocaleString('en-US', { maximumFractionDigits: 2 });
     document.getElementById('scoreText').innerHTML = score + '%';
     
-    // Dinamis Stop Loss & Take Profit berbasis persentase risiko
     document.getElementById('slText').innerHTML = (current * 0.995).toLocaleString('en-US', { minimumFractionDigits: 2 });
     document.getElementById('tpText').innerHTML = (current * 1.01).toLocaleString('en-US', { minimumFractionDigits: 2 });
 
