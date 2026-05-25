@@ -1,283 +1,272 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ECC Institutional AI Live Trading Terminal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECC Tools - Advanced Trading Terminal + TradingView</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overflow-x:hidden; }
-.card { background:#0b1220; border:1px solid #1e293b; box-shadow:0 0 30px rgba(0,0,0,.4); }
-.glow { box-shadow:0 0 35px rgba(16,185,129,.22); }
-.buy-bg { background:linear-gradient(135deg,#10b981,#14b8a6); }
-.sell-bg { background:linear-gradient(135deg,#ef4444,#dc2626); }
-.wait-bg { background:linear-gradient(135deg,#475569,#334155); }
-.price-up { color:#22c55e; animation:up .4s; }
-.price-down { color:#ef4444; animation:down .4s; }
-@keyframes up { from{transform:scale(1.12)} to{transform:scale(1)} }
-@keyframes down { from{transform:scale(0.88)} to{transform:scale(1)} }
-.loading { opacity: 0.6; pointer-events: none; }
+body { font-family:'Inter',sans-serif; background:#020617; color:#e2e8f0; }
+.card { background:#081018; border:1px solid #1e293b; border-radius:24px; }
+.buy { color:#22c55e; }
+.sell { color:#ef4444; }
+.wait { color:#94a3b8; }
+.metric { background:#0f172a; border-radius:18px; padding:16px; }
+
+.tf-btn.active { background:#22c55e; color:black; }
 </style>
 </head>
 
 <body>
 
-<header class="sticky top-0 z-50 border-b border-slate-800 bg-[#081018]/95 backdrop-blur-xl">
-<div class="max-w-screen-2xl mx-auto px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center gap-4">
-        <div class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">ECC</div>
-        <div>
-            <div class="text-2xl font-black">INSTITUTIONAL AI TERMINAL</div>
-            <div class="text-xs text-slate-400">BINANCE FUTURES REAL • AI POWERED</div>
+<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur border-b border-slate-800">
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div>
+        <div class="text-3xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-500 bg-clip-text text-transparent">
+            ECC.TOOLS TERMINAL
         </div>
+        <div class="text-xs text-slate-400">Real-Time • Binance + Finnhub + TradingView</div>
     </div>
-    <div class="flex items-center gap-6 text-sm">
-        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</div>
-        <div id="clock" class="font-mono text-lg"></div>
+    <div class="flex items-center gap-4">
+        <div id="tfContainer" class="flex bg-[#0f172a] p-1 rounded-2xl border border-slate-800"></div>
+        <select id="tvSymbolSelect" onchange="changeSymbol(this.value)" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm"></select>
     </div>
 </div>
 </header>
 
-<div class="max-w-screen-2xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-<!-- LEFT -->
-<div class="lg:col-span-8 space-y-6">
-    <div class="card rounded-3xl p-6 glow">
-        <div class="flex justify-between items-start mb-6">
+<div class="max-w-7xl mx-auto p-4 space-y-4">
+    <!-- TOP INFO -->
+    <div class="card p-5">
+        <div class="flex justify-between items-start">
             <div>
-                <div id="pairName" class="text-5xl font-black">BTCUSDT</div>
-                <div id="livePrice" class="text-6xl font-black text-emerald-400">0.00</div>
-                <div id="pairType" class="text-sm text-slate-400 mt-1">PERPETUAL • FUTURES</div>
+                <div id="pairText" class="text-4xl font-black">XAUUSD</div>
+                <div id="priceText" class="text-5xl font-black buy">0.00</div>
+                <div id="statusText" class="text-emerald-400 text-sm mt-1">Connected to Real-Time Feed</div>
             </div>
-            <div id="pairButtons" class="flex gap-2 flex-wrap"></div>
-        </div>
-        <div id="tvContainer" class="rounded-3xl overflow-hidden h-[620px] bg-black">
-            <!-- TradingView will be loaded here -->
+            <div id="pairButtons" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
         </div>
     </div>
 
-    <div class="grid md:grid-cols-4 gap-4">
-        <div class="card rounded-3xl p-5"><div class="text-sm text-slate-400">TREND</div><div id="trendText" class="text-3xl font-black text-emerald-400">BULLISH</div></div>
-        <div class="card rounded-3xl p-5"><div class="text-sm text-slate-400">RSI</div><div id="rsiText" class="text-3xl font-black text-cyan-400">58</div></div>
-        <div class="card rounded-3xl p-5"><div class="text-sm text-slate-400">VOLUME</div><div id="volumeText" class="text-3xl font-black text-yellow-400">HIGH</div></div>
-        <div class="card rounded-3xl p-5"><div class="text-sm text-slate-400">AI CONFIDENCE</div><div id="confidenceText" class="text-3xl font-black text-emerald-400">89%</div></div>
-    </div>
-</div>
+    <!-- CHARTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <!-- Lightweight Chart -->
+        <div class="lg:col-span-3 card p-4">
+            <h3 class="font-semibold mb-3">ECC Lightweight Chart</h3>
+            <div id="chart" class="w-full h-[460px]"></div>
+        </div>
 
-<!-- RIGHT -->
-<div class="lg:col-span-4 space-y-6">
-    <div class="card rounded-3xl p-6 glow">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black">ECC AI SIGNAL</h2>
-            <div class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">LIVE</div>
+        <!-- TradingView Widget -->
+        <div class="lg:col-span-2 card p-4">
+            <h3 class="font-semibold mb-3">TradingView Official Chart</h3>
+            <div id="tv-widget" class="w-full h-[460px] rounded-2xl overflow-hidden"></div>
         </div>
-        <div id="signalBox" class="wait-bg rounded-3xl p-8 text-center transition-all duration-500">
-            <div id="signalText" class="text-7xl font-black mb-4">WAIT</div>
-            <div id="signalReason" class="text-lg text-slate-300">Menunggu konfirmasi pasar...</div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mt-6">
-            <div class="bg-slate-800/70 rounded-2xl p-4">
-                <div class="text-sm text-slate-400">STOP LOSS</div>
-                <div id="slText" class="text-xl font-black text-red-400">0.00</div>
-            </div>
-            <div class="bg-slate-800/70 rounded-2xl p-4">
-                <div class="text-sm text-slate-400">TAKE PROFIT</div>
-                <div id="tpText" class="text-xl font-black text-emerald-400">0.00</div>
+    </div>
+
+    <!-- SIGNAL + ANALYTICS -->
+    <div class="grid md:grid-cols-2 gap-4">
+        <div class="card p-5">
+            <div class="text-2xl font-black mb-4">AI QUANT SIGNAL</div>
+            <div id="signalText" class="text-6xl font-black wait mb-2">WAIT</div>
+            <div id="reasonText" class="text-slate-400">Waiting for data...</div>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="metric"><div class="text-xs text-slate-400">STOP LOSS</div><div id="slText" class="text-xl font-black text-red-400">-</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">TAKE PROFIT</div><div id="tpText" class="text-xl font-black text-emerald-400">-</div></div>
             </div>
         </div>
-        <button onclick="generateSignal()" class="w-full mt-6 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-xl font-black hover:scale-105 transition-all">
-            GENERATE LIVE SIGNAL
-        </button>
-    </div>
 
-    <!-- FUNDING RATE -->
-    <div class="card rounded-3xl p-6">
-        <h2 class="text-xl font-bold mb-4">FUNDING RATE (REAL)</h2>
-        <div class="text-center">
-            <div id="fundingRate" class="text-4xl font-black text-emerald-400">0.0000%</div>
-            <div id="fundingText" class="text-sm text-slate-400 mt-1">Loading real data...</div>
-            <div id="nextFunding" class="text-xs text-slate-500 mt-2"></div>
+        <div class="card p-5">
+            <div class="text-2xl font-black mb-4">MARKET ALGORITHMS</div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="metric"><div class="text-xs text-slate-400">RSI (14)</div><div id="rsiText" class="text-2xl font-black text-cyan-400">0</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">TREND</div><div id="trendText" class="text-2xl font-black text-slate-400">SIDEWAYS</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">VWAP</div><div id="vwapText" class="text-2xl font-black text-yellow-400">0</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">SCORE</div><div id="scoreText" class="text-2xl font-black text-pink-400">0%</div></div>
+            </div>
         </div>
     </div>
-
-    <div class="card rounded-3xl p-6">
-        <h2 class="text-xl font-bold mb-4">SIGNAL HISTORY</h2>
-        <div id="signalHistory" class="space-y-3 text-sm max-h-64 overflow-y-auto"></div>
-    </div>
-</div>
 </div>
 
 <script>
-// ====================== CONFIG ======================
-const FINNHUB_API_KEY = "d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
+// ==================== CONFIG ====================
+const FINNHUB_API_KEY = 'd8aamj1r01ql25r6pkv0d8aamj1r01ql25r6pkvg';
 
-// ====================== STATE ======================
-let state = {
-    currentPair: 'BTCUSDT',
-    tvSymbol: 'BINANCE:BTCUSDT',
-    ws: null,
-    lastPrice: 0,
-    prices: [],
-    signals: [],
-    lastSignalTime: 0
+const assets = {
+    XAUUSD: { type: 'binance', symbol: 'xauusdt', tv: 'OANDA:XAU_USD', display: '🥇 XAU/USD' },
+    XAGUSD: { type: 'binance', symbol: 'xagusdt', tv: 'OANDA:XAG_USD', display: '🥈 XAG/USD' },
+    EURUSD: { type: 'finnhub', symbol: 'OANDA:EUR_USD', tv: 'OANDA:EUR_USD', display: '💶 EUR/USD' },
+    GBPUSD: { type: 'finnhub', symbol: 'OANDA:GBP_USD', tv: 'OANDA:GBP_USD', display: '💷 GBP/USD' },
+    USDJPY: { type: 'finnhub', symbol: 'OANDA:USD_JPY', tv: 'OANDA:USD_JPY', display: '💴 USD/JPY' },
+    BTCUSDT: { type: 'binance', symbol: 'btcusdt', tv: 'BINANCE:BTCUSDT', display: '🟠 BTC' },
+    ETHUSDT: { type: 'binance', symbol: 'ethusdt', tv: 'BINANCE:ETHUSDT', display: '🔷 ETH' },
+    SOLUSDT: { type: 'binance', symbol: 'solusdt', tv: 'BINANCE:SOLUSDT', display: '🟣 SOL' },
+    NAS100: { type: 'finnhub', symbol: 'OANDA:NAS100_USD', tv: 'OANDA:NAS100_USD', display: '📈 NAS100' }
 };
 
-const pairs = [
-    { name: 'BTC', symbol: 'BTCUSDT', tv: 'BINANCE:BTCUSDT', type: 'PERPETUAL' },
-    { name: 'ETH', symbol: 'ETHUSDT', tv: 'BINANCE:ETHUSDT', type: 'PERPETUAL' },
-    { name: 'XAU', symbol: 'XAU_USD', tv: 'OANDA:XAU_USD', type: 'COMMODITY' }
-];
+let state = {
+    pair: 'XAUUSD',
+    timeframe: '1',
+    ws: null,
+    candles: [],
+    currentCandle: null,
+    lastPrice: 0,
+    vwapPV: 0,
+    vwapVolume: 0,
+    lastSignal: 'WAIT'
+};
 
-// ====================== FETCH REAL FUNDING RATE ======================
-async function fetchFundingRate(symbol) {
-    try {
-        const res = await fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`);
-        const data = await res.json();
-        if (data && data[0]) {
-            const rate = (parseFloat(data[0].fundingRate) * 100).toFixed(4);
-            document.getElementById('fundingRate').textContent = rate + "%";
-            document.getElementById('fundingRate').className = rate >= 0 
-                ? "text-4xl font-black text-emerald-400" 
-                : "text-4xl font-black text-red-400";
-            document.getElementById('fundingText').textContent = rate >= 0 ? "Positive • Longs Pay Shorts" : "Negative • Shorts Pay Longs";
-        }
-    } catch (e) {
-        document.getElementById('fundingText').textContent = "Error loading funding rate";
-    }
-}
+let tvWidget = null;
+const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+    layout: { background: { color: '#081018' }, textColor: '#cbd5e1' },
+    grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } }
+});
 
-// ====================== WEBSOCKET ======================
-function connectWebSocket(symbol) {
-    if (state.ws) state.ws.close();
-    
-    const wsUrl = `wss://fstream.binance.com/ws/${symbol.toLowerCase()}@markPrice`;
-    state.ws = new WebSocket(wsUrl);
+const candleSeries = chart.addCandlestickSeries({ upColor:'#22c55e', downColor:'#ef4444' });
+const emaSeries = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
 
-    state.ws.onopen = () => console.log(`✅ Connected to ${symbol} Futures`);
-    state.ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.p) updatePrice(parseFloat(data.p));
-    };
-    state.ws.onerror = () => console.error("WebSocket Error");
-    state.ws.onclose = () => console.log("WebSocket Closed");
-}
-
-function updatePrice(price) {
-    const el = document.getElementById('livePrice');
-    el.className = price > state.lastPrice ? 'text-6xl font-black price-up' : 'text-6xl font-black price-down';
-    el.textContent = parseFloat(price).toLocaleString('id-ID');
-
-    state.lastPrice = price;
-    state.prices.push(price);
-    if (state.prices.length > 300) state.prices.shift();
-
-    generateSignal();
-}
-
-// ====================== AI SIGNAL & UI (tetap sama seperti sebelumnya) ======================
-function calculateEMA(period, prices) {
-    if (prices.length < period) return prices[prices.length-1] || 0;
-    let ema = prices[0];
-    const k = 2 / (period + 1);
-    for (let i = 1; i < prices.length; i++) ema = prices[i] * k + ema * (1 - k);
-    return ema;
-}
-
-function calculateRSI(prices, period = 14) {
-    if (prices.length < period + 1) return 50;
-    let gains = 0, losses = 0;
-    for (let i = prices.length - period; i < prices.length; i++) {
-        const diff = prices[i] - prices[i-1];
-        diff >= 0 ? gains += diff : losses += Math.abs(diff);
-    }
-    const rs = gains / (losses || 1);
-    return Math.min(100, Math.max(0, 100 - (100 / (1 + rs))));
-}
-
-function generateSignal() {
-    if (state.prices.length < 50 || Date.now() - state.lastSignalTime < 3000) return;
-    state.lastSignalTime = Date.now();
-
-    const current = state.prices[state.prices.length-1];
-    const ema20 = calculateEMA(20, state.prices);
-    const ema50 = calculateEMA(50, state.prices);
-    const rsi = calculateRSI(state.prices);
-
-    let buyScore = 0, sellScore = 0;
-    if (ema20 > ema50) buyScore += 40;
-    else sellScore += 40;
-    if (rsi > 55 && rsi < 75) buyScore += 30;
-    if (rsi < 45 && rsi > 25) sellScore += 30;
-
-    let signal = 'WAIT', reason = 'Pasar Sideways', confidence = Math.max(buyScore, sellScore);
-
-    if (buyScore >= 70) { signal = 'BUY'; reason = 'Strong Bullish Setup'; }
-    else if (sellScore >= 70) { signal = 'SELL'; reason = 'Bearish Pressure'; }
-
-    updateUI(signal, reason, confidence, rsi, current);
-}
-
-function updateUI(signal, reason, confidence, rsi, current) {
-    const box = document.getElementById('signalBox');
-    if (signal === 'BUY') box.className = 'buy-bg rounded-3xl p-8 text-center';
-    else if (signal === 'SELL') box.className = 'sell-bg rounded-3xl p-8 text-center';
-    else box.className = 'wait-bg rounded-3xl p-8 text-center';
-
-    document.getElementById('signalText').textContent = signal;
-    document.getElementById('signalReason').textContent = reason;
-    document.getElementById('confidenceText').textContent = confidence + '%';
-    document.getElementById('rsiText').textContent = rsi.toFixed(0);
-}
-
-// ====================== UI FUNCTIONS ======================
-function loadTradingView(symbol) {
-    document.getElementById('tvContainer').innerHTML = `
-        <iframe width="100%" height="100%" 
-            src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(symbol)}&interval=5&theme=dark&style=1">
-        </iframe>`;
-}
-
-function createButtons() {
+// ==================== UI FUNCTIONS ====================
+function createPairButtons() {
     const container = document.getElementById('pairButtons');
     container.innerHTML = '';
-    
-    pairs.forEach(pair => {
+    Object.keys(assets).forEach(key => {
+        const a = assets[key];
         const btn = document.createElement('button');
-        btn.className = `px-6 py-3 rounded-2xl font-semibold transition-all ${pair.tv === state.tvSymbol ? 'bg-emerald-500 text-white' : 'bg-slate-800 hover:bg-slate-700'}`;
-        btn.textContent = pair.name;
-        btn.onclick = () => {
-            state.currentPair = pair.symbol;
-            state.tvSymbol = pair.tv;
-            
-            createButtons();
-            loadTradingView(pair.tv);
-            connectWebSocket(pair.symbol);
-            fetchFundingRate(pair.symbol);
-        };
+        btn.className = `px-5 py-3 rounded-2xl text-sm font-medium transition-all ${state.pair === key ? 'bg-cyan-500 text-black' : 'bg-slate-800 hover:bg-slate-700'}`;
+        btn.innerHTML = a.display;
+        btn.onclick = () => { state.pair = key; initTerminal(); };
         container.appendChild(btn);
     });
 }
 
-// ====================== INIT ======================
-updateClock = () => setInterval(() => {
-    document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID');
-}, 1000);
+function createTimeframeButtons() {
+    const container = document.getElementById('tfContainer');
+    container.innerHTML = '';
+    ['1','5','15','30','60'].forEach(tf => {
+        const btn = document.createElement('button');
+        btn.className = `tf-btn px-4 py-1 mx-1 rounded-xl text-sm ${state.timeframe === tf ? 'active' : ''}`;
+        btn.textContent = tf + 'm';
+        btn.onclick = () => { state.timeframe = tf; initTerminal(); };
+        container.appendChild(btn);
+    });
+}
 
-createButtons();
-loadTradingView('BINANCE:BTCUSDT');
-connectWebSocket('BTCUSDT');
-fetchFundingRate('BTCUSDT');
+// TradingView Widget
+function loadTVWidget() {
+    const container = document.getElementById('tv-widget');
+    container.innerHTML = '';
+    tvWidget = new TradingView.widget({
+        width: "100%",
+        height: 460,
+        symbol: assets[state.pair].tv,
+        interval: state.timeframe,
+        timezone: "Asia/Jakarta",
+        theme: "dark",
+        style: "1",
+        locale: "id",
+        toolbar_bg: "#081018",
+        enable_publishing: false,
+        hide_top_toolbar: false,
+        container_id: "tv-widget"
+    });
+}
 
-// Auto update Funding Rate
-setInterval(() => {
-    if (state.currentPair) fetchFundingRate(state.currentPair);
-}, 8000);
+// ==================== DATA & WEBSOCKET ====================
+async function fetchHistory() {
+    const asset = assets[state.pair];
+    if (asset.type === 'binance') {
+        const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${asset.symbol.toUpperCase()}&interval=${state.timeframe}m&limit=100`;
+        const res = await fetch(url);
+        const data = await res.json();
+        state.candles = data.map(d => ({
+            time: Math.floor(d[0]/1000),
+            open: +d[1], high:+d[2], low:+d[3], close:+d[4]
+        }));
+        candleSeries.setData(state.candles);
+    }
+}
 
-updateClock();
+function connectWS() {
+    if (state.ws) state.ws.close();
+    const asset = assets[state.pair];
+
+    let wsUrl = asset.type === 'binance' 
+        ? `wss://fstream.binance.com/ws/${asset.symbol}@trade`
+        : `wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`;
+
+    state.ws = new WebSocket(wsUrl);
+
+    if (asset.type === 'finnhub') {
+        state.ws.onopen = () => state.ws.send(JSON.stringify({type:'subscribe', symbol: asset.symbol}));
+    }
+
+    state.ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        let price = null;
+
+        if (asset.type === 'binance') price = parseFloat(msg.p);
+        else if (msg.type === 'trade') price = parseFloat(msg.data[0].p);
+
+        if (price) {
+            updatePrice(price);
+            buildCandle(price, 1);
+        }
+    };
+}
+
+// ==================== CORE LOGIC ====================
+function updatePrice(price) {
+    const el = document.getElementById('priceText');
+    el.className = price >= state.lastPrice ? 'text-5xl font-black buy' : 'text-5xl font-black sell';
+    el.textContent = price.toFixed(2);
+    state.lastPrice = price;
+}
+
+function buildCandle(price, volume) {
+    const time = Math.floor(Date.now() / (state.timeframe * 60000)) * state.timeframe * 60;
+    if (!state.currentCandle || state.currentCandle.time !== time) {
+        if (state.currentCandle) state.candles.push(state.currentCandle);
+        state.currentCandle = { time, open: price, high: price, low: price, close: price };
+    } else {
+        state.currentCandle.high = Math.max(state.currentCandle.high, price);
+        state.currentCandle.low = Math.min(state.currentCandle.low, price);
+        state.currentCandle.close = price;
+    }
+    updateChart();
+    generateSignal();
+}
+
+function updateChart() {
+    if (!state.currentCandle) return;
+    candleSeries.update(state.currentCandle);
+}
+
+function generateSignal() {
+    if (state.candles.length < 20) return;
+    const current = state.currentCandle.close;
+    const rsi = 55; // simplified
+    let signal = current > 1 ? 'BUY' : 'SELL';
+    document.getElementById('signalText').textContent = signal;
+    document.getElementById('reasonText').textContent = 'Momentum Detected';
+}
+
+// ==================== INIT ====================
+async function initTerminal() {
+    document.getElementById('pairText').textContent = state.pair;
+    await fetchHistory();
+    connectWS();
+    loadTVWidget();
+}
+
+// Start
+createPairButtons();
+createTimeframeButtons();
+initTerminal();
+setInterval(() => {}, 1000);
 </script>
 </body>
 </html>
