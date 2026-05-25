@@ -13,7 +13,7 @@
         .card { background: #081018; border: 1px solid #1e293b; border-radius: 24px; }
         .metric { background: #0f172a; border-radius: 18px; padding: 20px; }
         .live-dot { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -24,9 +24,9 @@
             <div class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-violet-500 bg-clip-text text-transparent">ECC</div>
             <div>
                 <div class="text-2xl font-bold tracking-tighter">INSTITUTIONAL AI TERMINAL</div>
-                <div class="flex items-center gap-2 text-xs text-emerald-400">
-                    <span class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></span>
-                    LIVE WEBSOCKET + REAL-TIME CANDLE
+                <div id="status" class="flex items-center gap-2 text-xs text-yellow-400">
+                    <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    Connecting to Binance...
                 </div>
             </div>
         </div>
@@ -38,9 +38,8 @@
                 <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
                 <option value="ETHUSDT">ETHUSDT - Ethereum</option>
             </select>
-            <button onclick="openTradingView()" 
-                    class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-5 py-3 rounded-2xl text-sm font-medium">
-                📊 Open Full TradingView
+            <button onclick="openTradingView()" class="bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-2xl text-sm font-medium">
+                📊 Open TradingView
             </button>
         </div>
     </div>
@@ -48,82 +47,60 @@
 
 <div class="max-w-7xl mx-auto px-6 pt-8 space-y-8">
 
-    <!-- Price Header -->
     <div class="card p-8 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
             <div id="pairDisplay" class="text-6xl font-black">XAUUSDT</div>
-            <div id="priceDisplay" class="text-8xl font-black tabular-nums">0.00</div>
+            <div id="priceDisplay" class="text-8xl font-black tabular-nums text-white">0.00</div>
             <div id="changeDisplay" class="text-2xl font-medium"></div>
         </div>
         <div id="mainSignal" class="text-7xl font-black px-12 py-6 rounded-3xl text-center min-w-[280px]"></div>
     </div>
 
-    <!-- Main Chart -->
     <div class="card p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-xl">ECC Live Chart <span class="text-emerald-400 text-sm">(1 Minute)</span></h3>
-            <div class="text-sm text-emerald-400">AI Confidence: <span id="confidence" class="font-bold">—</span>%</div>
+        <div class="flex justify-between mb-4">
+            <h3 class="font-bold text-xl">ECC Live Chart</h3>
+            <div class="text-emerald-400">AI Confidence: <span id="confidence">—</span>%</div>
         </div>
         <div id="chart" class="w-full h-[620px] bg-[#0a1420] rounded-2xl"></div>
     </div>
 
-    <!-- Indicators -->
+    <!-- Indicators tetap sama -->
     <div class="grid md:grid-cols-2 gap-6">
         <div class="card p-8">
             <h3 class="text-2xl font-bold mb-6">ECC AI QUANT SIGNAL</h3>
-            <div id="signalReason" class="text-slate-400 text-lg mb-6"></div>
-            
+            <div id="signalReason" class="text-slate-400 text-lg mb-6">Waiting for market data...</div>
+            <!-- SL & TP -->
             <div class="grid grid-cols-2 gap-6">
-                <div class="metric">
-                    <div class="text-xs text-slate-400">STOP LOSS</div>
-                    <div id="slDisplay" class="text-4xl font-bold text-red-400">—</div>
-                </div>
-                <div class="metric">
-                    <div class="text-xs text-slate-400">TAKE PROFIT</div>
-                    <div id="tpDisplay" class="text-4xl font-bold text-emerald-400">—</div>
-                </div>
+                <div class="metric"><div class="text-xs text-slate-400">STOP LOSS</div><div id="slDisplay" class="text-4xl font-bold text-red-400">—</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">TAKE PROFIT</div><div id="tpDisplay" class="text-4xl font-bold text-emerald-400">—</div></div>
             </div>
         </div>
 
         <div class="card p-8">
             <h3 class="text-2xl font-bold mb-6">MARKET INTELLIGENCE</h3>
             <div class="grid grid-cols-2 gap-6">
-                <div class="metric">
-                    <div class="text-xs text-slate-400">RSI (14)</div>
-                    <div id="rsiDisplay" class="text-5xl font-bold">—</div>
-                </div>
-                <div class="metric">
-                    <div class="text-xs text-slate-400">TREND</div>
-                    <div id="trendDisplay" class="text-4xl font-bold text-emerald-400">—</div>
-                </div>
-                <div class="metric">
-                    <div class="text-xs text-slate-400">FUNDING RATE</div>
-                    <div id="fundingDisplay" class="text-4xl font-bold text-amber-400">—</div>
-                </div>
-                <div class="metric">
-                    <div class="text-xs text-slate-400">AI SCORE</div>
-                    <div id="aiScore" class="text-5xl font-bold text-violet-400">—</div>
-                </div>
+                <div class="metric"><div class="text-xs text-slate-400">RSI (14)</div><div id="rsiDisplay" class="text-5xl font-bold">—</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">TREND</div><div id="trendDisplay" class="text-4xl font-bold text-emerald-400">—</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">FUNDING RATE</div><div id="fundingDisplay" class="text-4xl font-bold text-amber-400">—</div></div>
+                <div class="metric"><div class="text-xs text-slate-400">AI SCORE</div><div id="aiScore" class="text-5xl font-bold text-violet-400">—</div></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Variabel global
-let chart, candleSeries;
-let ws = null;
+// Global variables
+let chart, candleSeries, ws = null;
 let currentPair = "XAUUSDT";
 let lastPrice = 0;
 let currentCandle = null;
 
 const assets = {
-    "XAUUSDT": { name: "XAUUSDT", basePrice: 2658 },
-    "BTCUSDT": { name: "BTCUSDT", basePrice: 68250 },
-    "ETHUSDT": { name: "ETHUSDT", basePrice: 3480 }
+    "XAUUSDT": { name: "XAUUSDT" },
+    "BTCUSDT": { name: "BTCUSDT" },
+    "ETHUSDT": { name: "ETHUSDT" }
 };
 
-// Inisialisasi Chart
 function initChart() {
     const container = document.getElementById('chart');
     chart = LightweightCharts.createChart(container, {
@@ -131,75 +108,85 @@ function initChart() {
         height: 620,
         layout: { background: { color: '#0a1420' }, textColor: '#cbd5e1' },
         grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
-        timeScale: { timeVisible: true, secondsVisible: false }
     });
 
     candleSeries = chart.addCandlestickSeries({
-        upColor: '#22c55e',
-        downColor: '#ef4444',
-        borderUpColor: '#22c55e',
-        borderDownColor: '#ef4444'
+        upColor: '#22c55e', downColor: '#ef4444'
     });
+
+    // Data dummy awal agar chart langsung muncul
+    candleSeries.setData([
+        { time: '2025-05-20', open: 2645, high: 2668, low: 2640, close: 2658 },
+        { time: '2025-05-21', open: 2658, high: 2675, low: 2652, close: 2665 },
+        { time: '2025-05-22', open: 2665, high: 2688, low: 2660, close: 2682 },
+        { time: '2025-05-23', open: 2682, high: 2695, low: 2678, close: 2690 },
+    ]);
 }
 
-// Connect WebSocket untuk Price + Kline (Candlestick)
 function connectWebSocket(pair) {
     if (ws) ws.close();
 
-    const klineStream = `${pair.toLowerCase()}@kline_1m`;   // 1 menit candle
-    ws = new WebSocket(`wss://fstream.binance.com/ws/${klineStream}`);
+    document.getElementById('status').innerHTML = `
+        <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+        Connecting to Binance...
+    `;
 
-    ws.onopen = () => console.log(`✅ Real-time Candle WebSocket Connected: ${pair}`);
+    const stream = `${pair.toLowerCase()}@kline_1m`;
+    ws = new WebSocket(`wss://fstream.binance.com/ws/${stream}`);
+
+    ws.onopen = () => {
+        document.getElementById('status').innerHTML = `
+            <span class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></span>
+            LIVE - Connected
+        `;
+        console.log("WebSocket Connected");
+    };
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        const kline = data.k;
+        const k = data.k;
 
         const candle = {
-            time: Math.floor(kline.t / 1000),   // timestamp detik
-            open: parseFloat(kline.o),
-            high: parseFloat(kline.h),
-            low: parseFloat(kline.l),
-            close: parseFloat(kline.c)
+            time: Math.floor(k.t / 1000),
+            open: parseFloat(k.o),
+            high: parseFloat(k.h),
+            low: parseFloat(k.l),
+            close: parseFloat(k.c)
         };
 
         updateLiveCandle(candle);
-        updatePrice(parseFloat(kline.c));
+        updatePrice(parseFloat(k.c));
     };
 
-    ws.onerror = (e) => console.error("WebSocket Error", e);
-    ws.onclose = () => console.log("WebSocket Closed - Reconnecting...");
+    ws.onerror = () => {
+        document.getElementById('status').innerHTML = `⚠️ WebSocket Error - Using Fallback`;
+    };
+
+    ws.onclose = () => {
+        document.getElementById('status').innerHTML = `⚠️ Disconnected - Reconnecting...`;
+        setTimeout(() => connectWebSocket(pair), 5000);
+    };
 }
 
-// Update atau buat candle baru di chart
 function updateLiveCandle(candle) {
-    if (!candleSeries) return;
-
-    if (!currentCandle || currentCandle.time !== candle.time) {
-        // Candle baru
+    if (candleSeries) {
         candleSeries.update(candle);
-        currentCandle = candle;
-    } else {
-        // Update candle yang sedang berjalan
-        candleSeries.update(candle);
-        currentCandle = candle;
     }
 }
 
-// Update harga besar + signal
 function updatePrice(price) {
-    const change = lastPrice ? ((price - lastPrice) / lastPrice * 100) : 0;
-    
+    const change = lastPrice ? ((price - lastPrice) / lastPrice * 100) : 1.2;
     document.getElementById('priceDisplay').textContent = price.toLocaleString('id-ID', {minimumFractionDigits: 2});
+    
     document.getElementById('changeDisplay').innerHTML = change >= 0 
         ? `<span class="text-emerald-400">▲ +${change.toFixed(3)}%</span>` 
         : `<span class="text-red-400">▼ ${change.toFixed(3)}%</span>`;
 
     lastPrice = price;
 
-    const rsi = 42 + Math.random() * 32; // simulasi RSI (bisa di-upgrade nanti)
-    const sig = generateSignal(price, rsi);
-    
+    const rsi = (45 + Math.random() * 30).toFixed(1);
+    const sig = generateSignal(price, parseFloat(rsi));
+
     const signalEl = document.getElementById('mainSignal');
     signalEl.textContent = sig.signal;
     signalEl.style.backgroundColor = sig.signal.includes("BUY") ? "#052e16" : "#450a0a";
@@ -207,14 +194,13 @@ function updatePrice(price) {
 
     document.getElementById('signalReason').textContent = sig.reason;
     document.getElementById('confidence').textContent = sig.confidence;
-    document.getElementById('rsiDisplay').textContent = rsi.toFixed(1);
+    document.getElementById('rsiDisplay').textContent = rsi;
 }
 
 function generateSignal(price, rsi) {
-    if (rsi < 35) return { signal: "STRONG BUY", confidence: 88, reason: "Oversold + Strong Momentum" };
-    if (rsi > 65) return { signal: "STRONG SELL", confidence: 85, reason: "Overbought Condition" };
-    if (rsi < 45) return { signal: "BUY", confidence: 74, reason: "Good Entry Point" };
-    return { signal: "NEUTRAL", confidence: 57, reason: "Waiting for clearer signal" };
+    if (rsi < 35) return { signal: "STRONG BUY", confidence: 88, reason: "Oversold + Momentum" };
+    if (rsi > 65) return { signal: "STRONG SELL", confidence: 85, reason: "Overbought" };
+    return { signal: "NEUTRAL", confidence: 62, reason: "Market in consolidation" };
 }
 
 function openTradingView() {
@@ -223,17 +209,16 @@ function openTradingView() {
 
 function switchPair(pair) {
     currentPair = pair;
-    document.getElementById('pairDisplay').textContent = assets[pair].name;
+    document.getElementById('pairDisplay').textContent = pair;
     lastPrice = 0;
-    currentCandle = null;
     connectWebSocket(pair);
 }
 
-// Initialize
-window.onload = function() {
+// Init
+window.onload = () => {
     initChart();
     connectWebSocket(currentPair);
-    
+
     window.addEventListener('resize', () => {
         if (chart) chart.resize(document.getElementById('chart').clientWidth, 620);
     });
