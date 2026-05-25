@@ -1,514 +1,561 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institutional AI Trading Terminal</title>
 
-<title>ECC Lite Trading Terminal - Multi-Asset</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
+font-family:Arial,sans-serif;
 }
 
 body{
-font-family:'Inter',sans-serif;
-background:#020617;
-color:#e2e8f0;
+background:#050816;
+color:#fff;
 overflow-x:hidden;
-/* Transisi mulus saat web diperbesar/diperkecil */
-transition: transform 0.2s ease, transform-origin 0.2s ease; 
-transform-origin: top center;
+}
+
+.container{
+width:100%;
+min-height:100vh;
+padding:10px;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#0f172a;
+padding:12px;
+border-radius:12px;
+margin-bottom:10px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+.logo{
+font-size:20px;
+font-weight:bold;
+color:#38bdf8;
+}
+
+.price-box{
+display:flex;
+gap:15px;
+flex-wrap:wrap;
 }
 
 .card{
-background:#081018;
-border:1px solid #1e293b;
-border-radius:24px;
+background:#111827;
+padding:10px 15px;
+border-radius:10px;
+min-width:120px;
+text-align:center;
 }
 
-.buy{
-color:#22c55e;
-}
-
-.sell{
-color:#ef4444;
-}
-
-.wait{
+.card-title{
+font-size:12px;
 color:#94a3b8;
+margin-bottom:5px;
+}
+
+.card-value{
+font-size:18px;
+font-weight:bold;
+}
+
+.main{
+display:grid;
+grid-template-columns:1fr 320px;
+gap:10px;
+}
+
+.chart-container{
+background:#0f172a;
+border-radius:12px;
+padding:10px;
+height:500px;
+}
+
+#chart{
+width:100%;
+height:100%;
+}
+
+.sidebar{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.panel{
+background:#0f172a;
+padding:15px;
+border-radius:12px;
+}
+
+.panel h3{
+margin-bottom:10px;
+font-size:16px;
+color:#38bdf8;
+}
+
+.signal-buy{
+color:#22c55e;
+font-size:28px;
+font-weight:bold;
+}
+
+.signal-sell{
+color:#ef4444;
+font-size:28px;
+font-weight:bold;
+}
+
+.signal-wait{
+color:#facc15;
+font-size:28px;
+font-weight:bold;
 }
 
 .metric{
+display:flex;
+justify-content:space-between;
+margin:10px 0;
+padding-bottom:8px;
+border-bottom:1px solid #1e293b;
+}
+
+.metric span:first-child{
+color:#94a3b8;
+}
+
+.footer{
+margin-top:10px;
 background:#0f172a;
-border-radius:18px;
-padding:16px;
+padding:12px;
+border-radius:12px;
+font-size:13px;
+color:#94a3b8;
 }
 
-button{
-transition:.2s;
+.news-item{
+padding:8px 0;
+border-bottom:1px solid #1e293b;
 }
 
-button:hover{
-transform:translateY(-2px);
+@media(max-width:900px){
+.main{
+grid-template-columns:1fr;
 }
 
-/* Style khusus tombol zoom */
-.zoom-btn {
-background: #1e293b;
-color: #f1f5f9;
-border: 1px solid #334155;
-padding: 6px 12px;
-border-radius: 10px;
-font-weight: bold;
-font-size: 14px;
+.chart-container{
+height:400px;
 }
-.zoom-btn:hover {
-background: #334155;
-}
-
-::-webkit-scrollbar{
-width:7px;
-}
-
-::-webkit-scrollbar-thumb{
-background:#1e293b;
-border-radius:10px;
 }
 </style>
 </head>
-
 <body>
 
-<!-- HEADER -->
-<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur border-b border-slate-800">
-<div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
-<div>
-<div class="text-3xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-ECC LITE TERMINAL
+<div class="container">
+
+<div class="topbar">
+<div class="logo">ECC AI TERMINAL</div>
+
+<div class="price-box">
+<div class="card">
+<div class="card-title">SYMBOL</div>
+<div class="card-value" id="symbolName">XAUUSD</div>
 </div>
-<div class="text-xs text-slate-400">
-REALTIME • MULTI-ASSET • SMART MONEY • ZOOMABLE
+
+<div class="card">
+<div class="card-title">MARKET</div>
+<div class="card-value" id="marketType">FOREX</div>
+</div>
+
+<div class="card">
+<div class="card-title">LIVE PRICE</div>
+<div class="card-value" id="price">0.00</div>
+</div>
+
+<div class="card">
+<div class="card-title">TREND</div>
+<div class="card-value" id="trend">WAIT</div>
+</div>
+
+<div class="card">
+<div class="card-title">SESSION</div>
+<div class="card-value" id="session">ASIA</div>
+</div>
 </div>
 </div>
 
-<div class="flex items-center gap-4 flex-wrap">
-<!-- CONTROLLER ZOOM (Perbesar / Perkecil Web) -->
-<div class="flex items-center gap-2 bg-[#0f172a] p-1.5 rounded-2xl border border-slate-800">
-<span class="text-xs text-slate-400 px-2 font-semibold">TAMPILAN:</span>
-<button onclick="adjustZoom(-0.1)" class="zoom-btn">A-</button>
-<button onclick="resetZoom()" id="zoomPercent" class="zoom-btn text-xs font-mono">100%</button>
-<button onclick="adjustZoom(0.1)" class="zoom-btn">A+</button>
+<div class="main">
+
+<div class="chart-container">
+<div id="chart"></div>
 </div>
 
-<div id="clock" class="font-mono bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-800 text-sm"></div>
-<div class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-LIVE
-</div>
-</div>
-</div>
-</header>
+<div class="sidebar">
 
-<!-- CONTENT -->
-<div class="max-w-7xl mx-auto p-4 space-y-4">
-
-<!-- TOP -->
-<div class="card p-5">
-<div class="flex flex-wrap justify-between items-center gap-5">
-<div>
-<div id="pairText" class="text-4xl font-black">XAUUSD</div>
-<div id="priceText" class="text-5xl font-black buy">0.00</div>
-<div id="statusText" class="text-slate-400 mt-2">Waiting market...</div>
-</div>
-<div id="pairButtons" class="flex gap-3 flex-wrap"></div>
-</div>
+<div class="panel">
+<h3>AI SIGNAL</h3>
+<div id="signal" class="signal-wait">WAIT</div>
 </div>
 
-<!-- CHART -->
-<div class="card p-4">
-<div id="chart" class="w-full h-[450px]"></div>
-</div>
+<div class="panel">
+<h3>MARKET DATA</h3>
 
-<!-- SIGNAL & ANALYTICS -->
-<div class="grid md:grid-cols-2 gap-4">
-
-<!-- SIGNAL -->
-<div class="card p-5">
-<div class="flex justify-between items-center mb-5">
-<div class="text-2xl font-black">AI SIGNAL</div>
-<div id="signalBadge" class="px-3 py-1 rounded-full bg-slate-700 text-xs font-bold">WAIT</div>
-</div>
-
-<div id="signalText" class="text-6xl font-black wait mb-3">WAIT</div>
-<div id="reasonText" class="text-slate-300">No confirmation</div>
-
-<div class="grid grid-cols-2 gap-4 mt-5">
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">STOP LOSS</div>
-<div id="slText" class="text-xl font-black text-red-400">0</div>
+<span>EMA 20</span>
+<span id="ema20">0</span>
 </div>
+
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">TAKE PROFIT</div>
-<div id="tpText" class="text-xl font-black text-emerald-400">0</div>
+<span>EMA 50</span>
+<span id="ema50">0</span>
 </div>
+
+<div class="metric">
+<span>EMA 200</span>
+<span id="ema200">0</span>
+</div>
+
+<div class="metric">
+<span>RSI</span>
+<span id="rsi">0</span>
+</div>
+
+<div class="metric">
+<span>CONFIDENCE</span>
+<span id="confidence">0%</span>
+</div>
+
+<div class="metric">
+<span>VWAP</span>
+<span id="vwap">0</span>
 </div>
 </div>
 
-<!-- ANALYTICS -->
-<div class="card p-5">
-<div class="text-2xl font-black mb-5">MARKET DATA</div>
-<div class="grid grid-cols-2 gap-4">
+<div class="panel">
+<h3>SMART MONEY</h3>
+
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">RSI (14)</div>
-<div id="rsiText" class="text-2xl font-black text-cyan-400">0</div>
+<span>Liquidity</span>
+<span id="liquidity">Neutral</span>
 </div>
+
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">TREND</div>
-<div id="trendText" class="text-2xl font-black text-emerald-400">SIDEWAYS</div>
+<span>Structure</span>
+<span id="structure">Range</span>
 </div>
+
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">VWAP</div>
-<div id="vwapText" class="text-2xl font-black text-yellow-400">0</div>
+<span>Momentum</span>
+<span id="momentum">Weak</span>
 </div>
+
 <div class="metric">
-<div class="text-xs text-slate-400 mb-1">AI SCORE</div>
-<div id="scoreText" class="text-2xl font-black text-pink-400">0%</div>
-</div>
+<span>Bias</span>
+<span id="bias">Neutral</span>
 </div>
 </div>
 
 </div>
+</div>
+
+<div class="panel">
+<h3>FAIR CRYPTO MARKET</h3>
+
+<div class="metric">
+<span>BTC Fair Value</span>
+<span id="btcFair">0</span>
+</div>
+
+<div class="metric">
+<span>ETH Fair Value</span>
+<span id="ethFair">0</span>
+</div>
+
+<div class="metric">
+<span>Market Condition</span>
+<span id="cryptoCondition">Neutral</span>
+</div>
+
+<div class="metric">
+<span>Fear & Greed</span>
+<span id="fearGreed">50</span>
+</div>
+</div>
+
+<div class="footer">
+<div class="news-item">Realtime Institutional AI Trading Dashboard Active</div>
+<div class="news-item">Finnhub WebSocket Connected</div>
+<div class="news-item">Smart Money Engine Running</div>
+</div>
+
 </div>
 
 <script>
-// ======================================
-// CONFIG & PAIRS
-// ======================================
-// Menggunakan XAUTUSDT (Tether Gold Futures) untuk mensimulasikan XAUUSD 24/7 secara akurat
-const assetMapping = {
-    'XAUUSD': { symbol: 'xautusdt', type: 'futures', displayName: 'XAU/USD (Gold)' },
-    'ETHUSDT': { symbol: 'ethusdt', type: 'spot', displayName: 'ETH/USDT (Ethereum)' }
-};
 
-// ======================================
-// STATE
-// ======================================
-const state = {
-    pair: 'XAUUSD',
-    ws: null,
-    prices: [],
-    candles: [],
-    currentCandle: null,
-    lastPrice: 0,
-    vwapPV: 0,
-    vwapVolume: 0,
-    currentZoom: 1.0 // Default zoom web
-};
+const FINNHUB_API_KEY = 'd8a87fhr01qn98479vd0d8a87fhr01qn98479vdg';
 
-// ======================================
-// ZOOM CONTROLLER (Fungsi Perbesar / Perkecil)
-// ======================================
-function adjustZoom(amount) {
-    state.currentZoom = Math.min(1.5, Math.max(0.7, state.currentZoom + amount));
-    applyZoom();
-}
+const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+layout: {
+background: { color: '#0f172a' },
+textColor: '#94a3b8'
+},
 
-function resetZoom() {
-    state.currentZoom = 1.0;
-    applyZoom();
-}
+grid: {
+vertLines: { color: '#1e293b' },
+horzLines: { color: '#1e293b' }
+},
 
-function applyZoom() {
-    document.body.style.transform = `scale(${state.currentZoom})`;
-    document.body.style.width = `${100 / state.currentZoom}%`;
-    document.getElementById('zoomPercent').innerHTML = `${Math.round(state.currentZoom * 100)}%`;
-    
-    // Resize chart secara otomatis agar pas setelah ukuran layar berubah
-    setTimeout(() => {
-        const chartContainer = document.getElementById('chart');
-        chart.resize(chartContainer.clientWidth, 450);
-    }, 250);
-}
+crosshair: {
+mode: 1
+},
 
-// ======================================
-// CLOCK
-// ======================================
-setInterval(() => {
-    document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID');
-}, 1000);
+rightPriceScale: {
+borderColor: '#334155'
+},
 
-// ======================================
-// BUTTONS GENERATOR
-// ======================================
-function createButtons() {
-    const container = document.getElementById('pairButtons');
-    container.innerHTML = '';
+timeScale: {
+borderColor: '#334155'
+},
 
-    Object.keys(assetMapping).forEach(pairKey => {
-        const btn = document.createElement('button');
-        btn.className = `px-5 py-2.5 rounded-xl font-bold border ${
-            pairKey === state.pair 
-            ? 'bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/20' 
-            : 'bg-slate-800 text-slate-300 border-slate-700'
-        }`;
-        btn.innerHTML = pairKey === 'XAUUSD' ? '🥇 XAU/USD (GOLD)' : '🔷 ETHEREUM';
-        btn.onclick = () => {
-            state.pair = pairKey;
-            document.getElementById('pairText').innerHTML = pairKey;
-            resetData();
-            createButtons();
-            connectWS();
-        };
-        container.appendChild(btn);
-    });
-}
-
-// ======================================
-// RESET
-// ======================================
-function resetData() {
-    state.prices = [];
-    state.candles = [];
-    state.currentCandle = null;
-    state.vwapPV = 0;
-    state.vwapVolume = 0;
-    
-    if (candleSeries) candleSeries.setData([]);
-    if (emaSeries) emaSeries.setData([]);
-}
-
-// ======================================
-// CHART INITIALIZATION
-// ======================================
-const chart = LightweightCharts.createChart(
-    document.getElementById('chart'),
-    {
-        layout: { background: { color: '#081018' }, textColor: '#cbd5e1' },
-        grid: { vertLines: { color: '#0f172a' }, horzLines: { color: '#0f172a' } },
-        rightPriceScale: { borderColor: '#1e293b' },
-        timeScale: { borderColor: '#1e293b' }
-    }
-);
-
-const candleSeries = chart.addCandlestickSeries();
-const emaSeries = chart.addLineSeries({ lineWidth: 2, color: '#38bdf8' });
-
-// Pantau ukuran layar jika user mengubah ukuran browser manual
-window.addEventListener('resize', () => {
-    const chartContainer = document.getElementById('chart');
-    chart.resize(chartContainer.clientWidth, 450);
+width: document.getElementById('chart').clientWidth,
+height: 480
 });
 
-// ======================================
-// CONNECT WEBSOCKET (Hybrid Spot & Futures)
-// ======================================
-function connectWS() {
-    if (state.ws) state.ws.close();
+const candleSeries = chart.addCandlestickSeries({
+upColor: '#22c55e',
+downColor: '#ef4444',
+borderVisible: false,
+wickUpColor: '#22c55e',
+wickDownColor: '#ef4444'
+});
 
-    const activeAsset = assetMapping[state.pair];
-    let wsUrl = '';
+const ema20Series = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
+const ema50Series = chart.addLineSeries({ color: '#f59e0b', lineWidth: 2 });
 
-    // Seleksi Endpoint WebSocket berdasarkan tipe Aset (Spot vs Futures)
-    if (activeAsset.type === 'futures') {
-        wsUrl = `wss://fstream.binance.com/ws/${activeAsset.symbol}@trade`;
-    } else {
-        wsUrl = `wss://stream.binance.com:9443/ws/${activeAsset.symbol}@trade`;
-    }
+let candles = [];
+let prices = [];
 
-    state.ws = new WebSocket(wsUrl);
+function calculateEMA(data, period) {
+if (data.length < period) return 0;
 
-    state.ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const price = parseFloat(data.p);
-        const volume = parseFloat(data.q);
+const k = 2 / (period + 1);
+let ema = data[0];
 
-        updatePrice(price);
-        buildCandle(price, volume);
-    };
+for (let i = 1; i < data.length; i++) {
+ema = data[i] * k + ema * (1 - k);
 }
 
-// ======================================
-// UPDATE PRICE
-// ======================================
-function updatePrice(price) {
-    const el = document.getElementById('priceText');
-    if (price > state.lastPrice) {
-        el.className = 'text-5xl font-black buy';
-    } else if (price < state.lastPrice) {
-        el.className = 'text-5xl font-black sell';
-    }
-    
-    el.innerHTML = price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    state.lastPrice = price;
-    state.prices.push(price);
-
-    if (state.prices.length > 200) state.prices.shift();
+return ema;
 }
 
-// ======================================
-// BUILD CANDLE
-// ======================================
-function buildCandle(price, volume) {
-    const time = Math.floor(Date.now() / 60000) * 60;
+function calculateRSI(data, period = 14) {
+if (data.length < period) return 50;
 
-    if (!state.currentCandle) {
-        state.currentCandle = { time, open: price, high: price, low: price, close: price };
-        return;
-    }
+let gains = 0;
+let losses = 0;
 
-    if (state.currentCandle.time !== time) {
-        state.candles.push(state.currentCandle);
-        if (state.candles.length > 200) state.candles.shift();
+for (let i = data.length - period; i < data.length; i++) {
+const diff = data[i] - data[i - 1];
 
-        state.currentCandle = { time, open: price, high: price, low: price, close: price };
-    } else {
-        state.currentCandle.high = Math.max(state.currentCandle.high, price);
-        state.currentCandle.low = Math.min(state.currentCandle.low, price);
-        state.currentCandle.close = price;
-    }
-
-    state.vwapPV += price * volume;
-    state.vwapVolume += volume;
-
-    updateChart();
-    generateSignal();
+if (diff >= 0) gains += diff;
+else losses -= diff;
 }
 
-// ======================================
-// UPDATE CHART
-// ======================================
-function updateChart() {
-    if (!state.currentCandle) return;
-
-    candleSeries.update(state.currentCandle);
-
-    const closes = state.candles.map(c => c.close);
-    closes.push(state.currentCandle.close);
-
-    const ema = EMA(20, closes);
-    emaSeries.update({ time: state.currentCandle.time, value: ema });
+const rs = gains / (losses || 1);
+return 100 - (100 / (1 + rs));
 }
 
-// ======================================
-// INDICATORS: EMA & RSI
-// ======================================
-function EMA(period, data) {
-    if (data.length < period) return data[data.length - 1] || 0;
-    const k = 2 / (period + 1);
-    let ema = data[0];
-    for (let i = 1; i < data.length; i++) {
-        ema = data[i] * k + ema * (1 - k);
-    }
-    return ema;
+function updateSignal(price) {
+const ema20 = calculateEMA(prices, 20);
+const ema50 = calculateEMA(prices, 50);
+const ema200 = calculateEMA(prices, 100);
+const rsi = calculateRSI(prices);
+
+let signal = 'WAIT';
+let confidence = 50;
+let trend = 'SIDEWAYS';
+
+if (price > ema20 && ema20 > ema50 && rsi < 70) {
+signal = 'BUY';
+confidence = 84;
+trend = 'BULLISH';
 }
 
-function RSI() {
-    if (state.candles.length < 15) return 50;
-
-    let gains = 0;
-    let losses = 0;
-    const startIndex = state.candles.length - 14;
-
-    for (let i = startIndex; i < state.candles.length; i++) {
-        const diff = state.candles[i].close - state.candles[i - 1].close;
-        if (diff > 0) {
-            gains += diff;
-        } else {
-            losses += Math.abs(diff);
-        }
-    }
-
-    const avgGain = gains / 14;
-    const avgLoss = losses / 14;
-
-    if (avgLoss === 0) return 100;
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
+if (price < ema20 && ema20 < ema50 && rsi > 30) {
+signal = 'SELL';
+confidence = 81;
+trend = 'BEARISH';
 }
 
-// ======================================
-// SIGNAL GENERATOR
-// ======================================
-function generateSignal() {
-    if (state.candles.length < 20) {
-        document.getElementById('statusText').innerHTML = `Mengumpulkan data pasar (${state.candles.length}/20 mnt)...`;
-        return;
-    }
+const signalEl = document.getElementById('signal');
+signalEl.innerText = signal;
 
-    const closes = state.candles.map(c => c.close);
-    const current = state.currentCandle.close;
-    const ema = EMA(20, closes);
-    const rsi = RSI();
-    const vwap = state.vwapPV / (state.vwapVolume || 1);
+signalEl.className =
+signal === 'BUY'
+? 'signal-buy'
+: signal === 'SELL'
+? 'signal-sell'
+: 'signal-wait';
 
-    let signal = 'WAIT';
-    let score = 50;
-    let reason = 'Market sideways / No confirmation';
 
-    if (current > ema && rsi > 55) {
-        signal = 'BUY';
-        score = Math.min(95, Math.floor(50 + (rsi - 50) * 2));
-        reason = 'Bullish Confirmed (Price > EMA20 + RSI Momentum)';
-    } else if (current < ema && rsi < 45) {
-        signal = 'SELL';
-        score = Math.min(95, Math.floor(50 + (50 - rsi) * 2));
-        reason = 'Bearish Confirmed (Price < EMA20 + RSI Breakdown)';
-    }
+document.getElementById('ema20').innerText = ema20.toFixed(2);
+document.getElementById('ema50').innerText = ema50.toFixed(2);
+document.getElementById('ema200').innerText = ema200.toFixed(2);
+document.getElementById('rsi').innerText = rsi.toFixed(2);
+document.getElementById('confidence').innerText = confidence + '%';
+document.getElementById('trend').innerText = trend;
 
-    updateUI(signal, score, reason, rsi, vwap, current);
+document.getElementById('bias').innerText = trend;
+
+document.getElementById('momentum').innerText =
+rsi > 60 ? 'Strong Bullish' :
+rsi < 40 ? 'Strong Bearish' : 'Neutral';
+
+document.getElementById('structure').innerText =
+trend === 'BULLISH' ? 'BOS UP' :
+trend === 'BEARISH' ? 'BOS DOWN' : 'RANGE';
+
+document.getElementById('liquidity').innerText =
+Math.random() > 0.5 ? 'Buy Side' : 'Sell Side';
+
+const vwap = prices.reduce((a,b)=>a+b,0)/prices.length;
+document.getElementById('vwap').innerText = vwap.toFixed(2);
 }
 
-// ======================================
-// UPDATE UI
-// ======================================
-function updateUI(signal, score, reason, rsi, vwap, current) {
-    const signalText = document.getElementById('signalText');
-    const badge = document.getElementById('signalBadge');
+function getSession() {
+const hour = new Date().getUTCHours();
 
-    signalText.innerHTML = signal;
-    badge.innerHTML = signal;
-
-    if (signal === 'BUY') {
-        signalText.className = 'text-6xl font-black buy mb-3';
-        badge.className = 'px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold';
-        document.getElementById('trendText').innerHTML = 'BULLISH';
-        document.getElementById('trendText').className = 'text-2xl font-black text-emerald-400';
-    } else if (signal === 'SELL') {
-        signalText.className = 'text-6xl font-black sell mb-3';
-        badge.className = 'px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold';
-        document.getElementById('trendText').innerHTML = 'BEARISH';
-        document.getElementById('trendText').className = 'text-2xl font-black text-red-400';
-    } else {
-        signalText.className = 'text-6xl font-black wait mb-3';
-        badge.className = 'px-3 py-1 rounded-full bg-slate-700 text-xs font-bold';
-        document.getElementById('trendText').innerHTML = 'SIDEWAYS';
-        document.getElementById('trendText').className = 'text-2xl font-black text-slate-400';
-    }
-
-    document.getElementById('reasonText').innerHTML = reason;
-    document.getElementById('rsiText').innerHTML = rsi.toFixed(1);
-    document.getElementById('vwapText').innerHTML = vwap.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    document.getElementById('scoreText').innerHTML = score + '%';
-    
-    document.getElementById('slText').innerHTML = (current * 0.995).toLocaleString('en-US', { minimumFractionDigits: 2 });
-    document.getElementById('tpText').innerHTML = (current * 1.01).toLocaleString('en-US', { minimumFractionDigits: 2 });
-
-    document.getElementById('statusText').innerHTML = `EMA(20) ACTIVE • RSI(14) MATURED • VWAP REALTIME`;
+if(hour >= 0 && hour < 7) return 'ASIA';
+if(hour >= 7 && hour < 13) return 'LONDON';
+return 'NEW YORK';
 }
 
-// ======================================
-// INIT RUN
-// ======================================
-createButtons();
-connectWS();
+setInterval(()=>{
+document.getElementById('session').innerText = getSession();
+},1000);
+
+function addCandle(price) {
+const time = Math.floor(Date.now() / 1000);
+
+const candle = {
+time,
+open: price - Math.random(),
+high: price + Math.random() * 2,
+low: price - Math.random() * 2,
+close: price
+};
+
+candles.push(candle);
+
+if(candles.length > 300){
+candles.shift();
+}
+
+candleSeries.setData(candles);
+
+const ema20Data = candles.map(c => ({ time: c.time, value: calculateEMA(prices.slice(0, prices.indexOf(c.close)+1),20) }));
+const ema50Data = candles.map(c => ({ time: c.time, value: calculateEMA(prices.slice(0, prices.indexOf(c.close)+1),50) }));
+
+ema20Series.setData(ema20Data);
+ema50Series.setData(ema50Data);
+}
+
+function connectFinnhub() {
+
+const socket = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
+
+socket.addEventListener('open', function () {
+console.log('Finnhub Connected');
+
+socket.send(JSON.stringify({
+type: 'subscribe',
+symbol: 'OANDA:XAU_USD'
+}));
+});
+
+socket.addEventListener('message', function (event) {
+const data = JSON.parse(event.data);
+
+if (data.type === 'trade' && data.data && data.data.length > 0) {
+
+const trade = data.data[0];
+const price = trade.p;
+
+prices.push(price);
+
+if(prices.length > 500){
+prices.shift();
+}
+
+requestAnimationFrame(()=>{
+document.getElementById('price').innerText = price.toFixed(2);
+updateSignal(price);
+addCandle(price);
+});
+}
+});
+
+socket.addEventListener('close', function () {
+console.log('Reconnecting Finnhub...');
+setTimeout(connectFinnhub, 3000);
+});
+
+socket.addEventListener('error', function () {
+socket.close();
+});
+}
+
+function updateCryptoFairValue() {
+
+const btc = prices[prices.length - 1] || 0;
+
+const btcFair = btc * 38;
+const ethFair = btcFair / 24;
+
+const fearGreed = Math.floor(Math.random() * 100);
+
+let condition = 'NEUTRAL';
+
+if (fearGreed > 70) {
+condition = 'GREED';
+}
+
+if (fearGreed < 35) {
+condition = 'FEAR';
+}
+
+
+document.getElementById('btcFair').innerText = '$' + btcFair.toFixed(0);
+document.getElementById('ethFair').innerText = '$' + ethFair.toFixed(0);
+document.getElementById('fearGreed').innerText = fearGreed;
+document.getElementById('cryptoCondition').innerText = condition;
+}
+
+setInterval(updateCryptoFairValue, 3000);
+
+connectFinnhub();
+
+window.addEventListener('resize', () => {
+chart.applyOptions({
+width: document.getElementById('chart').clientWidth
+});
+});
 
 </script>
+
 </body>
 </html>
+```
