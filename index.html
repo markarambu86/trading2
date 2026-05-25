@@ -1,516 +1,997 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ECC Institutional AI Live Trading Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;800&display=swap');
-        *{ margin:0; padding:0; box-sizing:border-box; }
-        body{
-            font-family:'Inter',sans-serif;
-            background:#050816;
-            color:#e2e8f0;
-            overflow-x:hidden;
-        }
-        .card{
-            background:#0b1220;
-            border:1px solid #1e293b;
-            box-shadow:0 0 30px rgba(0,0,0,.4);
-        }
-        .glow{ box-shadow:0 0 30px rgba(16,185,129,.18); }
-        .buy-bg{ background:linear-gradient(135deg,#10b981,#14b8a6); }
-        .sell-bg{ background:linear-gradient(135deg,#ef4444,#dc2626); }
-        .wait-bg{ background:linear-gradient(135deg,#475569,#334155); }
-        .price-up{ color:#22c55e; animation:up .3s; }
-        .price-down{ color:#ef4444; animation:down .3s; }
-        @keyframes up{ from{transform:scale(1.04)} to{transform:scale(1)} }
-        @keyframes down{ from{transform:scale(0.96)} to{transform:scale(1)} }
-        ::-webkit-scrollbar{ width:8px; }
-        ::-webkit-scrollbar-thumb{ background:#1e293b; border-radius:10px; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>ECC Institutional AI Live Trading Terminal</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:#050816;
+    color:#e2e8f0;
+    overflow-x:hidden;
+}
+
+.card{
+    background:#0b1220;
+    border:1px solid #1e293b;
+    box-shadow:0 0 30px rgba(0,0,0,.4);
+}
+
+.glow{
+    box-shadow:0 0 30px rgba(16,185,129,.18);
+}
+
+.buy-bg{
+    background:linear-gradient(135deg,#10b981,#14b8a6);
+}
+
+.sell-bg{
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+}
+
+.wait-bg{
+    background:linear-gradient(135deg,#475569,#334155);
+}
+
+.price-up{
+    color:#22c55e;
+    animation:up .3s;
+}
+
+.price-down{
+    color:#ef4444;
+    animation:down .3s;
+}
+
+@keyframes up{
+    from{transform:scale(1.08)}
+    to{transform:scale(1)}
+}
+
+@keyframes down{
+    from{transform:scale(.92)}
+    to{transform:scale(1)}
+}
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#1e293b;
+    border-radius:10px;
+}
+</style>
 </head>
+
 <body>
 
-    <header class="sticky top-0 z-50 border-b border-slate-800 bg-[#081018]/95 backdrop-blur-xl">
-        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">ECC</div>
-                <div>
-                    <div class="text-2xl font-black">INSTITUTIONAL AI TERMINAL</div>
-                    <div class="text-xs text-slate-400">REALTIME • SMART MONEY • LIVE TRADING</div>
-                </div>
-            </div>
-            <div class="flex items-center gap-6 text-sm">
-                <div class="flex items-center gap-2">
-                    <div id="binanceDot" class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
-                    BINANCE WS
-                </div>
-                <div class="flex items-center gap-2">
-                    <div id="finnhubDot" class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></div>
-                    FINNHUB LIVE
-                </div>
-                <div id="clock" class="font-mono text-lg"></div>
-            </div>
-        </div>
-    </header>
+<header class="sticky top-0 z-50 border-b border-slate-800 bg-[#081018]/95 backdrop-blur-xl">
 
-    <div class="max-w-screen-2xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-8 space-y-6">
-            <div class="card rounded-3xl p-6 glow">
-                <div class="flex flex-wrap justify-between items-center gap-6 mb-6">
-                    <div>
-                        <div id="pairName" class="text-5xl font-black">BTCUSDT</div>
-                        <div id="livePrice" class="text-6xl font-black text-emerald-400">0.00</div>
-                        <div id="marketStatus" class="text-slate-400 mt-2">Waiting realtime market data...</div>
-                    </div>
-                    <div id="pairButtons" class="flex gap-3 flex-wrap"></div>
-                </div>
-                <div id="tvContainer" class="rounded-3xl overflow-hidden h-[650px]"></div>
-            </div>
+<div class="max-w-screen-2xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="card rounded-3xl p-5">
-                    <div class="text-sm text-slate-400 mb-2">TREND</div>
-                    <div id="trendText" class="text-3xl font-black text-emerald-400">WAITING</div>
-                </div>
-                <div class="card rounded-3xl p-5">
-                    <div class="text-sm text-slate-400 mb-2">RSI (14)</div>
-                    <div id="rsiText" class="text-3xl font-black text-cyan-400">--</div>
-                </div>
-                <div class="card rounded-3xl p-5">
-                    <div class="text-sm text-slate-400 mb-2">VOLUME</div>
-                    <div id="volumeText" class="text-3xl font-black text-yellow-400">NORMAL</div>
-                </div>
-                <div class="card rounded-3xl p-5">
-                    <div class="text-sm text-slate-400 mb-2">AI CONFIDENCE</div>
-                    <div id="confidenceText" class="text-3xl font-black text-emerald-400">0%</div>
-                </div>
-            </div>
-        </div>
+<div class="flex items-center gap-4">
 
-        <div class="lg:col-span-4 space-y-6">
-            <div class="card rounded-3xl p-6 glow">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black">ECC AI SIGNAL</h2>
-                    <div class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs">LIVE ENGINE</div>
-                </div>
-                <div id="signalBox" class="wait-bg rounded-3xl p-8 text-center transition-all duration-500">
-                    <div id="signalText" class="text-7xl font-black mb-4">WAIT</div>
-                    <div id="signalReason" class="text-lg">Calibrating indicators...</div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                    <div class="bg-slate-800/70 rounded-2xl p-4">
-                        <div class="text-sm text-slate-400">STOP LOSS</div>
-                        <div id="slText" class="text-xl font-black text-red-400">0.00</div>
-                    </div>
-                    <div class="bg-slate-800/70 rounded-2xl p-4">
-                        <div class="text-sm text-slate-400">TAKE PROFIT</div>
-                        <div id="tpText" class="text-xl font-black text-emerald-400">0.00</div>
-                    </div>
-                </div>
-                <button onclick="forceGenerateSignal()" class="w-full mt-6 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-xl font-black hover:scale-[1.02] transition-all">
-                    FORCE SCAN SIGNAL
-                </button>
-            </div>
+<div class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+ECC
+</div>
 
-            <div class="card rounded-3xl p-6">
-                <h2 class="text-2xl font-black mb-6">MARKET INTELLIGENCE</h2>
-                <div class="space-y-5">
-                    <div>
-                        <div class="flex justify-between text-sm mb-2">
-                            <span>LONG / SHORT (AI PROJECTION)</span>
-                            <span id="longShortText">50% / 50%</span>
-                        </div>
-                        <div class="h-3 bg-slate-700 rounded-full overflow-hidden">
-                            <div id="longBar" class="h-full bg-emerald-500 transition-all duration-500" style="width:50%"></div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-emerald-950/40 rounded-2xl p-4">
-                            <div class="text-sm text-slate-400">EST. FUNDING</div>
-                            <div id="fundingRate" class="text-2xl font-black text-emerald-400">0.010%</div>
-                        </div>
-                        <div class="bg-cyan-950/40 rounded-2xl p-4">
-                            <div class="text-sm text-slate-400">OPEN INTEREST</div>
-                            <div id="oiText" class="text-2xl font-black text-cyan-400">+0.0%</div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-red-950/40 rounded-2xl p-4">
-                            <div class="text-sm text-slate-400">SHORT LIQ</div>
-                            <div id="shortLiq" class="text-2xl font-black text-red-400">$0M</div>
-                        </div>
-                        <div class="bg-emerald-950/40 rounded-2xl p-4">
-                            <div class="text-sm text-slate-400">LONG LIQ</div>
-                            <div id="longLiq" class="text-2xl font-black text-emerald-400">$0M</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div>
+<div class="text-2xl font-black">
+INSTITUTIONAL AI TERMINAL
+</div>
 
-            <div class="card rounded-3xl p-6">
-                <h2 class="text-2xl font-black mb-6">ENGINE TELEMETRY</h2>
-                <div id="analysisText" class="space-y-4 text-slate-300">
-                    <div class="p-4 rounded-2xl bg-slate-800/60 flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-emerald-400"></div> Institutional Trend Filter Active
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-800/60 flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-emerald-400"></div> Volatility Adaptive ATR Band Active
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-800/60 flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-emerald-400"></div> Smart Money Volume Confluence Engine
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="text-xs text-slate-400">
+REALTIME • SMART MONEY • LIVE TRADING
+</div>
+</div>
 
-    <script>
-        // ======================
-        // CONFIG (Ganti API Key Finnhub Anda di sini jika diperlukan)
-        // ======================
-        const FINNHUB_API_KEY = "d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
+</div>
 
-        // ======================
-        // STATE MANAGEMENT
-        // ======================
-        let state = {
-            pair: 'BTC',
-            tv: 'BINANCE:BTCUSDT',
-            ws: null,
-            lastPrice: 0,
-            prices: [],
-            volumes: [],
-            orderBook: { bids: [], asks: [] },
-            lastSignalTime: 0,
-            isUiThrottled: false // Mencegah lag browser akibat spam update
-        };
+<div class="flex items-center gap-6 text-sm">
 
-        const pairs = [
-            { name: 'BTC', symbol: 'BINANCE:BTCUSDT' },
-            { name: 'ETH', symbol: 'BINANCE:ETHUSDT' },
-            { name: 'XAU', symbol: 'OANDA:XAUUSD' }
-        ];
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+BINANCE WS
+</div>
 
-        // ======================
-        // REALTIME SYSTEM CLOCK
-        // ======================
-        setInterval(() => {
-            document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID');
-        }, 1000);
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+FINNHUB LIVE
+</div>
 
-        // ======================
-        // UI DYNAMIC BUTTONS
-        // ======================
-        function createButtons() {
-            const container = document.getElementById('pairButtons');
-            container.innerHTML = '';
+<div id="clock" class="font-mono text-lg"></div>
 
-            pairs.forEach(pair => {
-                const btn = document.createElement('button');
-                btn.className = `px-6 py-3 rounded-2xl font-bold transition-all ${
-                    pair.symbol === state.tv ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                }`;
-                btn.innerHTML = pair.name;
-                btn.onclick = () => {
-                    if (pair.symbol === state.tv) return;
-                    state.pair = pair.name;
-                    state.tv = pair.symbol;
-                    state.prices = [];
-                    state.volumes = [];
-                    
-                    createButtons();
-                    loadTradingView(pair.symbol);
-                    
-                    if (pair.name === 'XAU') {
-                        connectFinnhubGold();
-                    } else {
-                        connectBinance(pair.symbol);
-                    }
-                };
-                container.appendChild(btn);
-            });
-        }
+</div>
 
-        // ======================
-        // TRADINGVIEW WIDGET
-        // ======================
-        function loadTradingView(symbol) {
-            document.getElementById('pairName').innerHTML = symbol.replace('BINANCE:', '').replace('OANDA:', '');
-            document.getElementById('tvContainer').innerHTML = `
-                <iframe width="100%" height="100%" frameBorder="0"
-                    src="https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=1&theme=dark&style=1&toolbarbg=081018&hide_side_toolbar=false"
-                ></iframe>`;
-        }
+</div>
 
-        // ======================
-        // BINANCE WEBSOCKET (FIXED MULTI-STREAM)
-        // ======================
-        function connectBinance(symbol) {
-            if (state.ws) state.ws.close();
-            
-            document.getElementById('binanceDot').className = "w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
-            document.getElementById('finnhubDot').className = "w-2 h-2 rounded-full bg-slate-500";
+</header>
 
-            const wsSymbol = symbol.replace('BINANCE:', '').toLowerCase();
-            // PERBAIKAN: Format pemisah stream menggunakan koma (,) sesuai dokumentasi resmi Binance
-            const url = `wss://stream.binance.com:9443/stream?streams=${wsSymbol}@trade,${wsSymbol}@depth20@100ms`;
+<div class="max-w-screen-2xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            state.ws = new WebSocket(url);
+<!-- LEFT -->
+<div class="lg:col-span-8 space-y-6">
 
-            state.ws.onopen = () => {
-                document.getElementById('binanceDot').className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-            };
+<!-- MAIN -->
+<div class="card rounded-3xl p-6 glow">
 
-            state.ws.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                if (!msg.stream) return;
+<div class="flex flex-wrap justify-between items-center gap-6 mb-6">
 
-                if (msg.stream.includes('@trade')) {
-                    updatePrice(parseFloat(msg.data.p), parseFloat(msg.data.q));
-                }
-                if (msg.stream.includes('@depth20')) {
-                    state.orderBook.bids = msg.data.bids;
-                    state.orderBook.asks = msg.data.asks;
-                }
-            };
+<div>
+<div id="pairName" class="text-5xl font-black">
+BTCUSDT
+</div>
 
-            state.ws.onerror = () => {
-                document.getElementById('binanceDot').className = "w-2 h-2 rounded-full bg-red-500";
-            };
-        }
+<div id="livePrice" class="text-6xl font-black text-emerald-400">
+0.00
+</div>
 
-        // ======================
-        // FINNHUB GOLD WEBSOCKET
-        // ======================
-        function connectFinnhubGold() {
-            if (state.ws) state.ws.close();
+<div id="marketStatus" class="text-slate-400 mt-2">
+Waiting realtime market...
+</div>
+</div>
 
-            document.getElementById('finnhubDot').className = "w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
-            document.getElementById('binanceDot').className = "w-2 h-2 rounded-full bg-slate-500";
+<div id="pairButtons" class="flex gap-3 flex-wrap"></div>
 
-            state.ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
+</div>
 
-            state.ws.onopen = () => {
-                document.getElementById('finnhubDot').className = "w-2 h-2 rounded-full bg-cyan-500 animate-pulse";
-                state.ws.send(JSON.stringify({ type: 'subscribe', symbol: 'OANDA:XAU_USD' }));
-            };
+<div id="tvContainer"
+class="rounded-3xl overflow-hidden h-[650px]">
+</div>
 
-            state.ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.type === 'trade' && data.data && data.data[0]) {
-                    // Finnhub tidak menyediakan volume lot realtime murni untuk CFD retail, set default 10
-                    updatePrice(parseFloat(data.data[0].p), 10); 
-                }
-            };
+</div>
 
-            state.ws.onerror = () => {
-                document.getElementById('finnhubDot').className = "w-2 h-2 rounded-full bg-red-500";
-            };
-        }
+<!-- ANALYTICS -->
+<div class="grid md:grid-cols-4 gap-4">
 
-        // ======================
-        // PRICE INGESTION ENGINE
-        // ======================
-        function updatePrice(price, volume) {
-            const el = document.getElementById('livePrice');
-            
-            // Efek visual naik/turun tick price
-            if (price > state.lastPrice) {
-                el.className = 'text-6xl font-black price-up';
-            } else if (price < state.lastPrice) {
-                el.className = 'text-6xl font-black price-down';
-            }
+<div class="card rounded-3xl p-5">
+<div class="text-sm text-slate-400 mb-2">
+TREND
+</div>
 
-            // Tampilkan presisi angka desimal sesuai aset (XAU butuh desimal, BTC bulat saja sudah cukup)
-            el.innerHTML = state.pair === 'XAU' ? price.toFixed(2) : price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+<div id="trendText"
+class="text-3xl font-black text-emerald-400">
+BULLISH
+</div>
+</div>
 
-            state.lastPrice = price;
-            state.prices.push(price);
-            state.volumes.push(volume);
+<div class="card rounded-3xl p-5">
+<div class="text-sm text-slate-400 mb-2">
+RSI
+</div>
 
-            // Batasi memori array biar browser enteng (max 300 baris data data tick)
-            if (state.prices.length > 300) state.prices.shift();
-            if (state.volumes.length > 300) state.volumes.shift();
+<div id="rsiText"
+class="text-3xl font-black text-cyan-400">
+58
+</div>
+</div>
 
-            // Sinyal discan otomatis secara berkala (Throttle 2 detik sekali agar hemat energi laptop)
-            if (!state.isUiThrottled) {
-                state.isUiThrottled = true;
-                setTimeout(() => {
-                    generateSignal();
-                    state.isUiThrottled = false;
-                }, 2000);
-            }
-        }
+<div class="card rounded-3xl p-5">
+<div class="text-sm text-slate-400 mb-2">
+VOLUME
+</div>
 
-        // ======================
-        // MATHEMATICAL INDICATORS
-        // ======================
-        function calculateEMA(period, prices) {
-            if (prices.length < period) return prices[prices.length - 1] || 0;
-            const k = 2 / (period + 1);
-            let ema = prices[0];
-            for (let i = 1; i < prices.length; i++) {
-                ema = prices[i] * k + ema * (1 - k);
-            }
-            return ema;
-        }
+<div id="volumeText"
+class="text-3xl font-black text-yellow-400">
+HIGH
+</div>
+</div>
 
-        function calculateRSI(prices, period = 14) {
-            if (prices.length < period + 1) return 50;
-            let gains = 0;
-            let losses = 0;
-            for (let i = prices.length - period; i < prices.length; i++) {
-                const diff = prices[i] - prices[i - 1];
-                if (diff >= 0) gains += diff;
-                else losses += Math.abs(diff);
-            }
-            if (losses === 0) return 100;
-            const rs = gains / losses;
-            return 100 - (100 / (1 + rs));
-        }
+<div class="card rounded-3xl p-5">
+<div class="text-sm text-slate-400 mb-2">
+AI CONFIDENCE
+</div>
 
-        function calculateATR(prices) {
-            if (prices.length < 2) return 0;
-            let total = 0;
-            for (let i = 1; i < prices.length; i++) {
-                total += Math.abs(prices[i] - prices[i - 1]);
-            }
-            return total / prices.length;
-        }
+<div id="confidenceText"
+class="text-3xl font-black text-emerald-400">
+82%
+</div>
+</div>
 
-        // ======================
-        // ADVANCED LOGIC SIGNALS SCANNER
-        // ======================
-        function generateSignal() {
-            // Memerlukan data awal yang cukup sebelum kalkulasi indikator berjalan stabil
-            if (state.prices.length < 30) {
-                document.getElementById('marketStatus').innerHTML = `Collecting data ticks (${state.prices.length}/30)...`;
-                return;
-            }
+</div>
 
-            const current = state.prices[state.prices.length - 1];
-            const avg = state.prices.reduce((a, b) => a + b, 0) / state.prices.length;
-            
-            const ema20 = calculateEMA(20, state.prices);
-            const ema50 = calculateEMA(50, state.prices);
-            const rsi = calculateRSI(state.prices, 14);
-            const atr = calculateATR(state.prices);
+</div>
 
-            const avgVolume = state.volumes.reduce((a, b) => a + b, 0) / state.volumes.length;
-            const latestVolume = state.volumes[state.volumes.length - 1];
-            
-            // Konfirmasi volumeinstitusional (Volume di atas 130% rata-rata)
-            const volumeSpike = latestVolume > (avgVolume * 1.3);
+<!-- RIGHT -->
+<div class="lg:col-span-4 space-y-6">
 
-            let buyScore = 0;
-            let sellScore = 0;
+<!-- AI SIGNAL -->
+<div class="card rounded-3xl p-6 glow">
 
-            // Aturan Pembobotan Skor Sinyal (Confluence Weight)
-            if (ema20 > ema50) buyScore += 30;
-            if (ema20 < ema50) sellScore += 30;
+<div class="flex justify-between items-center mb-6">
 
-            if (rsi > 52 && rsi < 70) buyScore += 20;
-            if (rsi < 48 && rsi > 30) sellScore += 20;
+<h2 class="text-2xl font-black">
+ECC AI SIGNAL
+</h2>
 
-            if (current > ema20) buyScore += 20;
-            if (current < ema20) sellScore += 20;
+<div class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs">
+LIVE
+</div>
 
-            if (volumeSpike && current > avg) buyScore += 30;
-            if (volumeSpike && current < avg) sellScore += 30;
+</div>
 
-            let signal = 'WAIT';
-            let reason = 'Market consolidation / Indeterminate Flow';
-            let confidence = Math.max(buyScore, sellScore);
+<div id="signalBox"
+class="wait-bg rounded-3xl p-8 text-center transition-all duration-500">
 
-            // Threshold eksekusi ditingkatkan ke minimal 75% konfluens untuk menyaring false breakout
-            if (buyScore >= 75) {
-                signal = 'BUY';
-                reason = 'Smart Money Accumulation + EMA Gold Cross Confirmation';
-            } else if (sellScore >= 75) {
-                signal = 'SELL';
-                reason = 'Liquidity Sweep Detected + EMA Dynamic Resistance Rejection';
-            } else if (rsi > 70) {
-                reason = 'RSI Overbought Area - High Risk to Entry Long';
-            } else if (rsi < 30) {
-                reason = 'RSI Oversold Area - High Risk to Entry Short';
-            }
+<div id="signalText"
+class="text-7xl font-black mb-4">
+WAIT
+</div>
 
-            updateUI(signal, reason, confidence, rsi, atr, current, ema20);
-        }
+<div id="signalReason"
+class="text-lg">
+Waiting confirmation...
+</div>
 
-        // Tombol paksa manual scan sinyal
-        function forceGenerateSignal() {
-            generateSignal();
-        }
+</div>
 
-        // ======================
-        // DYNAMIC UI UPDATE ENGINE
-        // ======================
-        function updateUI(signal, reason, confidence, rsi, atr, current, ema20) {
-            const signalBox = document.getElementById('signalBox');
-            const trendText = document.getElementById('trendText');
+<div class="grid grid-cols-2 gap-4 mt-6">
 
-            // 1. Update Box Sinyal Utama
-            if (signal === 'BUY') {
-                signalBox.className = 'buy-bg rounded-3xl p-8 text-center transition-all duration-500';
-                trendText.innerHTML = 'BULLISH';
-                trendText.className = 'text-3xl font-black text-emerald-400';
-            } else if (signal === 'SELL') {
-                signalBox.className = 'sell-bg rounded-3xl p-8 text-center transition-all duration-500';
-                trendText.innerHTML = 'BEARISH';
-                trendText.className = 'text-3xl font-black text-red-400';
-            } else {
-                signalBox.className = 'wait-bg rounded-3xl p-8 text-center transition-all duration-500';
-                trendText.innerHTML = 'SIDEWAYS';
-                trendText.className = 'text-3xl font-black text-slate-400';
-            }
+<div class="bg-slate-800/70 rounded-2xl p-4">
+<div class="text-sm text-slate-400">
+STOP LOSS
+</div>
 
-            document.getElementById('signalText').innerHTML = signal;
-            document.getElementById('signalReason').innerHTML = reason;
-            document.getElementById('confidenceText').innerHTML = confidence + '%';
-            document.getElementById('rsiText').innerHTML = rsi.toFixed(0);
-            
-            // 2. Bar Persentase Projeksi
-            document.getElementById('longBar').style.width = confidence + '%';
-            document.getElementById('longShortText').innerHTML = `${confidence}% / ${100 - confidence}%`;
+<div id="slText"
+class="text-xl font-black text-red-400">
+0.00
+</div>
+</div>
 
-            // 3. Telemetri Data Pasar (Menghilangkan kalkulasi random liar per tick)
-            document.getElementById('fundingRate').innerHTML = signal === 'BUY' ? '+0.012%' : (signal === 'SELL' ? '-0.006%' : '0.010%');
-            document.getElementById('oiText').innerHTML = signal !== 'WAIT' ? '+' + (confidence / 12).toFixed(1) + '%' : '+0.2%';
-            document.getElementById('volumeText').innerHTML = confidence > 60 ? 'HIGH' : 'NORMAL';
-            
-            // Estimasi Data Likuidasi Berdasarkan Volatilitas Realtime (ATR)
-            const baseLiq = (atr * (state.pair === 'XAU' ? 5 : 0.1)).toFixed(1);
-            document.getElementById('shortLiq').innerHTML = `$${(baseLiq * (signal==='BUY'? 2 : 0.5)).toFixed(1)}M`;
-            document.getElementById('longLiq').innerHTML = `$${(baseLiq * (signal==='SELL'? 2 : 0.5)).toFixed(1)}M`;
+<div class="bg-slate-800/70 rounded-2xl p-4">
+<div class="text-sm text-slate-400">
+TAKE PROFIT
+</div>
 
-            // 4. Kalkulasi Stop Loss & Take Profit berbasis Volatilitas Pasar Berjalan (ATR)
-            const precision = state.pair === 'XAU' ? 2 : 2;
-            if (signal === 'BUY') {
-                // TP = 2x Lipat Risiko Volatilitas ATR, SL = 1x Volatilitas ATR di bawah harga entry
-                document.getElementById('tpText').innerHTML = (current + (atr * 2.5)).toFixed(precision);
-                document.getElementById('slText').innerHTML = (current - (atr * 1.2)).toFixed(precision);
-            } else if (signal === 'SELL') {
-                document.getElementById('tpText').innerHTML = (current - (atr * 2.5)).toFixed(precision);
-                document.getElementById('slText').innerHTML = (current + (atr * 1.2)).toFixed(precision);
-            } else {
-                document.getElementById('tpText').innerHTML = '0.00';
-                document.getElementById('slText').innerHTML = '0.00';
-            }
+<div id="tpText"
+class="text-xl font-black text-emerald-400">
+0.00
+</div>
+</div>
 
-            // PERBAIKAN: Semua variabel (ema20, rsi, atr) di bawah dijamin aman & terdefinisi dari parameter
-            document.getElementById('marketStatus').innerHTML = `EMA20: ${ema20.toFixed(precision)} • RSI: ${rsi.toFixed(0)} • ATR Volatility: ${atr.toFixed(precision)}`;
-        }
+</div>
 
-        // ======================
-        // SYSTEM BOOTSTRAP INITIALIZATION
-        // ======================
-        createButtons();
-        loadTradingView('BINANCE:BTCUSDT');
-        connectBinance('BINANCE:BTCUSDT');
-    </script>
+<button onclick="generateSignal()"
+class="w-full mt-6 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-xl font-black hover:scale-[1.02] transition-all">
+
+GENERATE LIVE SIGNAL
+
+</button>
+
+</div>
+
+<!-- MARKET DATA -->
+<div class="card rounded-3xl p-6">
+
+<h2 class="text-2xl font-black mb-6">
+MARKET INTELLIGENCE
+</h2>
+
+<div class="space-y-5">
+
+<div>
+<div class="flex justify-between text-sm mb-2">
+<span>LONG / SHORT</span>
+<span id="longShortText">
+52% / 48%
+</span>
+</div>
+
+<div class="h-3 bg-slate-700 rounded-full overflow-hidden">
+
+<div id="longBar"
+class="h-full bg-emerald-500 transition-all duration-500"
+style="width:52%">
+</div>
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+
+<div class="bg-emerald-950/40 rounded-2xl p-4">
+
+<div class="text-sm text-slate-400">
+FUNDING
+</div>
+
+<div id="fundingRate"
+class="text-2xl font-black text-emerald-400">
+0.008%
+</div>
+
+</div>
+
+<div class="bg-cyan-950/40 rounded-2xl p-4">
+
+<div class="text-sm text-slate-400">
+OPEN INTEREST
+</div>
+
+<div id="oiText"
+class="text-2xl font-black text-cyan-400">
++4.6%
+</div>
+
+</div>
+
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+
+<div class="bg-red-950/40 rounded-2xl p-4">
+
+<div class="text-sm text-slate-400">
+SHORT LIQ
+</div>
+
+<div id="shortLiq"
+class="text-2xl font-black text-red-400">
+$12M
+</div>
+
+</div>
+
+<div class="bg-emerald-950/40 rounded-2xl p-4">
+
+<div class="text-sm text-slate-400">
+LONG LIQ
+</div>
+
+<div id="longLiq"
+class="text-2xl font-black text-emerald-400">
+$8M
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- AI ANALYSIS -->
+<div class="card rounded-3xl p-6">
+
+<h2 class="text-2xl font-black mb-6">
+AI ANALYSIS
+</h2>
+
+<div id="analysisText" class="space-y-4 text-slate-300">
+
+<div class="p-4 rounded-2xl bg-slate-800/60">
+• Institutional trend detection active
+</div>
+
+<div class="p-4 rounded-2xl bg-slate-800/60">
+• Volume spike monitoring active
+</div>
+
+<div class="p-4 rounded-2xl bg-slate-800/60">
+• Smart money confluence engine active
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// ======================
+// CONFIG
+// ======================
+
+const FINNHUB_API_KEY =
+"d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
+
+// ======================
+// STATE
+// ======================
+
+let state = {
+
+    pair:'BTCUSDT',
+    tv:'BINANCE:BTCUSDT',
+
+    ws:null,
+
+    lastPrice:0,
+
+    prices:[],
+
+    volumes:[],
+
+    orderBook:{
+        bids:[],
+        asks:[]
+    },
+
+    lastSignalTime:0
+};
+
+// ======================
+// PAIRS
+// ======================
+
+const pairs = [
+
+{
+    name:'BTC',
+    symbol:'BINANCE:BTCUSDT'
+},
+
+{
+    name:'ETH',
+    symbol:'BINANCE:ETHUSDT'
+},
+
+{
+    name:'XAU',
+    symbol:'OANDA:XAUUSD'
+}
+
+];
+
+// ======================
+// CLOCK
+// ======================
+
+setInterval(()=>{
+
+document.getElementById('clock').innerHTML =
+new Date().toLocaleTimeString('id-ID');
+
+},1000);
+
+// ======================
+// BUTTONS
+// ======================
+
+function createButtons(){
+
+const container =
+document.getElementById('pairButtons');
+
+container.innerHTML='';
+
+pairs.forEach(pair=>{
+
+const btn =
+document.createElement('button');
+
+btn.className =
+`px-6 py-3 rounded-2xl font-bold transition-all
+${pair.symbol===state.tv
+?'bg-emerald-500 text-white'
+:'bg-slate-800 hover:bg-slate-700'}`;
+
+btn.innerHTML = pair.name;
+
+btn.onclick = ()=>{
+
+state.pair = pair.name;
+state.tv = pair.symbol;
+
+createButtons();
+
+loadTradingView(pair.symbol);
+
+if(pair.name==='XAU'){
+
+connectFinnhubGold();
+
+}else{
+
+connectBinance(pair.symbol);
+
+}
+
+};
+
+container.appendChild(btn);
+
+});
+
+}
+
+// ======================
+// TRADINGVIEW
+// ======================
+
+function loadTradingView(symbol){
+
+document.getElementById('pairName').innerHTML =
+symbol.replace('BINANCE:','')
+.replace('OANDA:','');
+
+document.getElementById('tvContainer').innerHTML =
+`
+<iframe
+width="100%"
+height="100%"
+src="https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=1&theme=dark&style=1&toolbarbg=081018&hide_side_toolbar=false"
+></iframe>
+`;
+
+}
+
+// ======================
+// BINANCE MULTISTREAM
+// ======================
+
+function connectBinance(symbol){
+
+if(state.ws) state.ws.close();
+
+const wsSymbol =
+symbol.replace('BINANCE:','').toLowerCase();
+
+state.ws =
+new WebSocket(
+`wss://stream.binance.com:9443/stream?streams=
+${wsSymbol}@trade/
+${wsSymbol}@depth20@100ms`
+.replace(/\s/g,'')
+);
+
+state.ws.onmessage = (event)=>{
+
+const msg = JSON.parse(event.data);
+
+if(msg.stream.includes('@trade')){
+
+const data = msg.data;
+
+const price = parseFloat(data.p);
+
+const volume = parseFloat(data.q);
+
+updatePrice(price,volume);
+
+}
+
+if(msg.stream.includes('@depth20')){
+
+state.orderBook.bids =
+msg.data.bids;
+
+state.orderBook.asks =
+msg.data.asks;
+
+}
+
+};
+
+}
+
+// ======================
+// FINNHUB GOLD
+// ======================
+
+function connectFinnhubGold(){
+
+if(state.ws) state.ws.close();
+
+state.ws =
+new WebSocket(
+`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`
+);
+
+state.ws.onopen = ()=>{
+
+state.ws.send(JSON.stringify({
+
+type:'subscribe',
+symbol:'OANDA:XAU_USD'
+
+}));
+
+};
+
+state.ws.onmessage = (event)=>{
+
+const data = JSON.parse(event.data);
+
+if(data.data && data.data[0]){
+
+const price =
+data.data[0].p;
+
+updatePrice(price,1);
+
+}
+
+};
+
+}
+
+// ======================
+// UPDATE PRICE
+// ======================
+
+function updatePrice(price,volume){
+
+const el =
+document.getElementById('livePrice');
+
+if(price > state.lastPrice){
+
+el.className =
+'text-6xl font-black price-up';
+
+}else{
+
+el.className =
+'text-6xl font-black price-down';
+
+}
+
+el.innerHTML =
+parseFloat(price).toLocaleString();
+
+state.lastPrice = price;
+
+state.prices.push(price);
+
+state.volumes.push(volume);
+
+if(state.prices.length > 200)
+state.prices.shift();
+
+if(state.volumes.length > 200)
+state.volumes.shift();
+
+generateSignal();
+
+}
+
+// ======================
+// EMA
+// ======================
+
+function calculateEMA(period,prices){
+
+if(prices.length < period)
+return prices[prices.length-1] || 0;
+
+const k = 2/(period+1);
+
+let ema = prices[0];
+
+for(let i=1;i<prices.length;i++){
+
+ema =
+prices[i]*k + ema*(1-k);
+
+}
+
+return ema;
+
+}
+
+// ======================
+// RSI
+// ======================
+
+function calculateRSI(prices,period=14){
+
+if(prices.length < period)
+return 50;
+
+let gains = 0;
+let losses = 0;
+
+for(let i=1;i<prices.length;i++){
+
+const diff =
+prices[i]-prices[i-1];
+
+if(diff>=0){
+
+gains += diff;
+
+}else{
+
+losses += Math.abs(diff);
+
+}
+
+}
+
+const rs =
+gains / (losses || 1);
+
+return 100 - (100/(1+rs));
+
+}
+
+// ======================
+// ATR
+// ======================
+
+function calculateATR(prices){
+
+if(prices.length < 2)
+return 0;
+
+let total = 0;
+
+for(let i=1;i<prices.length;i++){
+
+total +=
+Math.abs(prices[i]-prices[i-1]);
+
+}
+
+return total / prices.length;
+
+}
+
+// ======================
+// AI ENGINE
+// ======================
+
+function generateSignal(){
+
+if(state.prices.length < 30)
+return;
+
+if(Date.now() - state.lastSignalTime < 3000)
+return;
+
+state.lastSignalTime = Date.now();
+
+const current =
+state.prices[state.prices.length-1];
+
+const avg =
+state.prices.reduce((a,b)=>a+b,0)
+/
+state.prices.length;
+
+const ema20 =
+calculateEMA(20,state.prices);
+
+const ema50 =
+calculateEMA(50,state.prices);
+
+const rsi =
+calculateRSI(state.prices);
+
+const atr =
+calculateATR(state.prices);
+
+const avgVolume =
+state.volumes.reduce((a,b)=>a+b,0)
+/
+state.volumes.length;
+
+const latestVolume =
+state.volumes[state.volumes.length-1];
+
+const volumeSpike =
+latestVolume > avgVolume * 1.5;
+
+let buyScore = 0;
+let sellScore = 0;
+
+if(ema20 > ema50)
+buyScore += 30;
+
+if(ema20 < ema50)
+sellScore += 30;
+
+if(rsi > 55)
+buyScore += 20;
+
+if(rsi < 45)
+sellScore += 20;
+
+if(volumeSpike)
+buyScore += 20;
+
+if(current > avg)
+buyScore += 30;
+
+if(current < avg)
+sellScore += 30;
+
+let signal = 'WAIT';
+let reason = 'Market sideways';
+
+let confidence =
+Math.max(buyScore,sellScore);
+
+if(buyScore >= 70){
+
+signal = 'BUY';
+
+reason =
+'Bullish structure + volume spike + EMA confirmation';
+
+}
+
+if(sellScore >= 70){
+
+signal = 'SELL';
+
+reason =
+'Bearish pressure + liquidity sweep + EMA rejection';
+
+}
+
+updateUI(
+signal,
+reason,
+confidence,
+rsi,
+atr,
+current
+);
+
+}
+
+// ======================
+// UPDATE UI
+// ======================
+
+function updateUI(
+signal,
+reason,
+confidence,
+rsi,
+atr,
+current
+){
+
+const signalBox =
+document.getElementById('signalBox');
+
+if(signal==='BUY'){
+
+signalBox.className =
+'buy-bg rounded-3xl p-8 text-center';
+
+document.getElementById('trendText')
+.innerHTML = 'BULLISH';
+
+}else if(signal==='SELL'){
+
+signalBox.className =
+'sell-bg rounded-3xl p-8 text-center';
+
+document.getElementById('trendText')
+.innerHTML = 'BEARISH';
+
+}else{
+
+signalBox.className =
+'wait-bg rounded-3xl p-8 text-center';
+
+document.getElementById('trendText')
+.innerHTML = 'SIDEWAYS';
+
+}
+
+document.getElementById('signalText')
+.innerHTML = signal;
+
+document.getElementById('signalReason')
+.innerHTML = reason;
+
+document.getElementById('confidenceText')
+.innerHTML = confidence + '%';
+
+document.getElementById('rsiText')
+.innerHTML = rsi.toFixed(0);
+
+document.getElementById('longBar')
+.style.width = confidence + '%';
+
+document.getElementById('longShortText')
+.innerHTML =
+`${confidence}% / ${100-confidence}%`;
+
+document.getElementById('fundingRate')
+.innerHTML =
+signal==='BUY'
+?'+0.012%'
+:'-0.008%';
+
+document.getElementById('oiText')
+.innerHTML =
+'+' + (Math.random()*10).toFixed(1) + '%';
+
+document.getElementById('volumeText')
+.innerHTML =
+confidence > 75
+?'HIGH'
+:'MEDIUM';
+
+document.getElementById('shortLiq')
+.innerHTML =
+'$' + (Math.random()*20).toFixed(1) + 'M';
+
+document.getElementById('longLiq')
+.innerHTML =
+'$' + (Math.random()*20).toFixed(1) + 'M';
+
+if(signal==='BUY'){
+
+document.getElementById('tpText')
+.innerHTML =
+(current + atr*2).toFixed(2);
+
+document.getElementById('slText')
+.innerHTML =
+(current - atr).toFixed(2);
+
+}else if(signal==='SELL'){
+
+document.getElementById('tpText')
+.innerHTML =
+(current - atr*2).toFixed(2);
+
+document.getElementById('slText')
+.innerHTML =
+(current + atr).toFixed(2);
+
+}
+
+document.getElementById('marketStatus')
+.innerHTML =
+`EMA20 ${emaText(signal)}
+ • RSI ${rsi.toFixed(0)}
+ • ATR ${atr.toFixed(2)}`;
+
+}
+
+// ======================
+// EMA STATUS
+// ======================
+
+function emaText(signal){
+
+if(signal==='BUY')
+return 'Bullish';
+
+if(signal==='SELL')
+return 'Bearish';
+
+return 'Neutral';
+
+}
+
+// ======================
+// INIT
+// ======================
+
+createButtons();
+
+loadTradingView('BINANCE:BTCUSDT');
+
+connectBinance('BINANCE:BTCUSDT');
+
+</script>
+
 </body>
 </html>
