@@ -1,92 +1,114 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECC Tools - Advanced Trading Terminal + TradingView</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-<script src="https://s3.tradingview.com/tv.js"></script>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Inter',sans-serif; background:#020617; color:#e2e8f0; }
-.card { background:#081018; border:1px solid #1e293b; border-radius:24px; }
-.buy { color:#22c55e; }
-.sell { color:#ef4444; }
-.wait { color:#94a3b8; }
-.metric { background:#0f172a; border-radius:18px; padding:16px; }
-
-.tf-btn.active { background:#22c55e; color:black; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECC Institutional AI Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #020617; color: #e2e8f0; }
+        .card { background: #081018; border: 1px solid #1e293b; border-radius: 24px; }
+        .metric { background: #0f172a; border-radius: 18px; padding: 20px; }
+        .signal-buy { animation: pulseBuy 2s infinite; }
+        .signal-sell { animation: pulseSell 2s infinite; }
+        
+        @keyframes pulseBuy { 0%, 100% { box-shadow: 0 0 30px #22c55e; } 50% { box-shadow: 0 0 50px #22c55e; } }
+        @keyframes pulseSell { 0%, 100% { box-shadow: 0 0 30px #ef4444; } 50% { box-shadow: 0 0 50px #ef4444; } }
+    </style>
 </head>
+<body class="min-h-screen pb-12">
 
-<body>
-
-<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur border-b border-slate-800">
-<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-    <div>
-        <div class="text-3xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-indigo-500 bg-clip-text text-transparent">
-            ECC.TOOLS TERMINAL
+<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur-lg border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-violet-500 bg-clip-text text-transparent">ECC</div>
+            <div>
+                <div class="text-2xl font-bold tracking-tighter">INSTITUTIONAL AI TERMINAL</div>
+                <div class="text-xs text-emerald-400 tracking-widest">BINANCE • FINNHUB • REAL-TIME</div>
+            </div>
         </div>
-        <div class="text-xs text-slate-400">Real-Time • Binance + Finnhub + TradingView</div>
+        
+        <div class="flex items-center gap-4">
+            <select id="symbolSelect" onchange="switchPair(this.value)" 
+                    class="bg-slate-900 border border-slate-700 rounded-2xl px-6 py-3 text-base font-medium focus:outline-none focus:border-cyan-500">
+                <option value="XAUUSD">XAUUSD - Gold</option>
+                <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
+                <option value="ETHUSDT">ETHUSDT - Ethereum</option>
+            </select>
+        </div>
     </div>
-    <div class="flex items-center gap-4">
-        <div id="tfContainer" class="flex bg-[#0f172a] p-1 rounded-2xl border border-slate-800"></div>
-        <select id="tvSymbolSelect" onchange="changeSymbol(this.value)" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm"></select>
-    </div>
-</div>
 </header>
 
-<div class="max-w-7xl mx-auto p-4 space-y-4">
-    <!-- TOP INFO -->
-    <div class="card p-5">
-        <div class="flex justify-between items-start">
-            <div>
-                <div id="pairText" class="text-4xl font-black">XAUUSD</div>
-                <div id="priceText" class="text-5xl font-black buy">0.00</div>
-                <div id="statusText" class="text-emerald-400 text-sm mt-1">Connected to Real-Time Feed</div>
-            </div>
-            <div id="pairButtons" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+<div class="max-w-7xl mx-auto px-6 pt-8 space-y-8">
+
+    <!-- Price Header -->
+    <div class="card p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+            <div id="pairDisplay" class="text-6xl font-black"></div>
+            <div id="priceDisplay" class="text-8xl font-black tabular-nums text-white">0.00</div>
+            <div id="changeDisplay" class="text-2xl font-medium"></div>
         </div>
+        <div id="mainSignal" class="text-7xl font-black px-12 py-6 rounded-3xl text-center min-w-[280px]"></div>
     </div>
 
-    <!-- CHARTS -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <!-- Lightweight Chart -->
-        <div class="lg:col-span-3 card p-4">
-            <h3 class="font-semibold mb-3">ECC Lightweight Chart</h3>
-            <div id="chart" class="w-full h-[460px]"></div>
+        <div class="lg:col-span-3 card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-xl">ECC Live Chart</h3>
+                <div class="text-emerald-400 font-medium">AI Confidence: <span id="confidence">87</span>%</div>
+            </div>
+            <div id="chart" class="w-full h-[520px]"></div>
         </div>
 
-        <!-- TradingView Widget -->
-        <div class="lg:col-span-2 card p-4">
-            <h3 class="font-semibold mb-3">TradingView Official Chart</h3>
-            <div id="tv-widget" class="w-full h-[460px] rounded-2xl overflow-hidden"></div>
+        <!-- TradingView -->
+        <div class="lg:col-span-2 card p-6">
+            <h3 class="font-bold text-xl mb-4">TradingView Professional</h3>
+            <div id="tv-widget" class="w-full h-[520px] rounded-2xl overflow-hidden"></div>
         </div>
     </div>
 
-    <!-- SIGNAL + ANALYTICS -->
-    <div class="grid md:grid-cols-2 gap-4">
-        <div class="card p-5">
-            <div class="text-2xl font-black mb-4">AI QUANT SIGNAL</div>
-            <div id="signalText" class="text-6xl font-black wait mb-2">WAIT</div>
-            <div id="reasonText" class="text-slate-400">Waiting for data...</div>
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <div class="metric"><div class="text-xs text-slate-400">STOP LOSS</div><div id="slText" class="text-xl font-black text-red-400">-</div></div>
-                <div class="metric"><div class="text-xs text-slate-400">TAKE PROFIT</div><div id="tpText" class="text-xl font-black text-emerald-400">-</div></div>
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- AI Signal -->
+        <div class="card p-8">
+            <h3 class="text-2xl font-bold mb-6">ECC AI QUANT SIGNAL</h3>
+            <div id="signalReason" class="text-slate-400 mb-6 text-lg"></div>
+            
+            <div class="grid grid-cols-2 gap-6">
+                <div class="metric">
+                    <div class="text-xs text-slate-400 mb-2">STOP LOSS</div>
+                    <div id="slDisplay" class="text-4xl font-bold text-red-400">-</div>
+                </div>
+                <div class="metric">
+                    <div class="text-xs text-slate-400 mb-2">TAKE PROFIT</div>
+                    <div id="tpDisplay" class="text-4xl font-bold text-emerald-400">-</div>
+                </div>
             </div>
         </div>
 
-        <div class="card p-5">
-            <div class="text-2xl font-black mb-4">MARKET ALGORITHMS</div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="metric"><div class="text-xs text-slate-400">RSI (14)</div><div id="rsiText" class="text-2xl font-black text-cyan-400">0</div></div>
-                <div class="metric"><div class="text-xs text-slate-400">TREND</div><div id="trendText" class="text-2xl font-black text-slate-400">SIDEWAYS</div></div>
-                <div class="metric"><div class="text-xs text-slate-400">VWAP</div><div id="vwapText" class="text-2xl font-black text-yellow-400">0</div></div>
-                <div class="metric"><div class="text-xs text-slate-400">SCORE</div><div id="scoreText" class="text-2xl font-black text-pink-400">0%</div></div>
+        <!-- Market Intelligence -->
+        <div class="card p-8">
+            <h3 class="text-2xl font-bold mb-6">MARKET INTELLIGENCE</h3>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="metric">
+                    <div class="text-xs text-slate-400">RSI (14)</div>
+                    <div id="rsiDisplay" class="text-5xl font-bold">58.4</div>
+                </div>
+                <div class="metric">
+                    <div class="text-xs text-slate-400">TREND</div>
+                    <div id="trendDisplay" class="text-4xl font-bold text-emerald-400">BULLISH</div>
+                </div>
+                <div class="metric">
+                    <div class="text-xs text-slate-400">FUNDING RATE</div>
+                    <div id="fundingDisplay" class="text-4xl font-bold text-amber-400">0.0087%</div>
+                </div>
+                <div class="metric">
+                    <div class="text-xs text-slate-400">AI SCORE</div>
+                    <div id="aiScore" class="text-5xl font-bold text-violet-400">86%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -94,179 +116,17 @@ body { font-family:'Inter',sans-serif; background:#020617; color:#e2e8f0; }
 
 <script>
 // ==================== CONFIG ====================
-const FINNHUB_API_KEY = 'd8aamj1r01ql25r6pkv0d8aamj1r01ql25r6pkvg';
+let currentPair = "XAUUSD";
+let chart, candleSeries;
 
+// Assets
 const assets = {
-    XAUUSD: { type: 'binance', symbol: 'xauusdt', tv: 'OANDA:XAU_USD', display: '🥇 XAU/USD' },
-    XAGUSD: { type: 'binance', symbol: 'xagusdt', tv: 'OANDA:XAG_USD', display: '🥈 XAG/USD' },
-    EURUSD: { type: 'finnhub', symbol: 'OANDA:EUR_USD', tv: 'OANDA:EUR_USD', display: '💶 EUR/USD' },
-    GBPUSD: { type: 'finnhub', symbol: 'OANDA:GBP_USD', tv: 'OANDA:GBP_USD', display: '💷 GBP/USD' },
-    USDJPY: { type: 'finnhub', symbol: 'OANDA:USD_JPY', tv: 'OANDA:USD_JPY', display: '💴 USD/JPY' },
-    BTCUSDT: { type: 'binance', symbol: 'btcusdt', tv: 'BINANCE:BTCUSDT', display: '🟠 BTC' },
-    ETHUSDT: { type: 'binance', symbol: 'ethusdt', tv: 'BINANCE:ETHUSDT', display: '🔷 ETH' },
-    SOLUSDT: { type: 'binance', symbol: 'solusdt', tv: 'BINANCE:SOLUSDT', display: '🟣 SOL' },
-    NAS100: { type: 'finnhub', symbol: 'OANDA:NAS100_USD', tv: 'OANDA:NAS100_USD', display: '📈 NAS100' }
+    "XAUUSD": { name: "XAUUSD", tv: "OANDA:XAU_USD", binance: "XAUUSDT" },
+    "BTCUSDT": { name: "BTCUSDT", tv: "BINANCE:BTCUSDT", binance: "BTCUSDT" },
+    "ETHUSDT": { name: "ETHUSDT", tv: "BINANCE:ETHUSDT", binance: "ETHUSDT" }
 };
 
-let state = {
-    pair: 'XAUUSD',
-    timeframe: '1',
-    ws: null,
-    candles: [],
-    currentCandle: null,
-    lastPrice: 0,
-    vwapPV: 0,
-    vwapVolume: 0,
-    lastSignal: 'WAIT'
-};
-
-let tvWidget = null;
-const chart = LightweightCharts.createChart(document.getElementById('chart'), {
-    layout: { background: { color: '#081018' }, textColor: '#cbd5e1' },
-    grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } }
-});
-
-const candleSeries = chart.addCandlestickSeries({ upColor:'#22c55e', downColor:'#ef4444' });
-const emaSeries = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
-
-// ==================== UI FUNCTIONS ====================
-function createPairButtons() {
-    const container = document.getElementById('pairButtons');
-    container.innerHTML = '';
-    Object.keys(assets).forEach(key => {
-        const a = assets[key];
-        const btn = document.createElement('button');
-        btn.className = `px-5 py-3 rounded-2xl text-sm font-medium transition-all ${state.pair === key ? 'bg-cyan-500 text-black' : 'bg-slate-800 hover:bg-slate-700'}`;
-        btn.innerHTML = a.display;
-        btn.onclick = () => { state.pair = key; initTerminal(); };
-        container.appendChild(btn);
-    });
-}
-
-function createTimeframeButtons() {
-    const container = document.getElementById('tfContainer');
-    container.innerHTML = '';
-    ['1','5','15','30','60'].forEach(tf => {
-        const btn = document.createElement('button');
-        btn.className = `tf-btn px-4 py-1 mx-1 rounded-xl text-sm ${state.timeframe === tf ? 'active' : ''}`;
-        btn.textContent = tf + 'm';
-        btn.onclick = () => { state.timeframe = tf; initTerminal(); };
-        container.appendChild(btn);
-    });
-}
-
-// TradingView Widget
-function loadTVWidget() {
-    const container = document.getElementById('tv-widget');
-    container.innerHTML = '';
-    tvWidget = new TradingView.widget({
-        width: "100%",
-        height: 460,
-        symbol: assets[state.pair].tv,
-        interval: state.timeframe,
-        timezone: "Asia/Jakarta",
-        theme: "dark",
-        style: "1",
-        locale: "id",
-        toolbar_bg: "#081018",
-        enable_publishing: false,
-        hide_top_toolbar: false,
-        container_id: "tv-widget"
-    });
-}
-
-// ==================== DATA & WEBSOCKET ====================
-async function fetchHistory() {
-    const asset = assets[state.pair];
-    if (asset.type === 'binance') {
-        const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${asset.symbol.toUpperCase()}&interval=${state.timeframe}m&limit=100`;
-        const res = await fetch(url);
-        const data = await res.json();
-        state.candles = data.map(d => ({
-            time: Math.floor(d[0]/1000),
-            open: +d[1], high:+d[2], low:+d[3], close:+d[4]
-        }));
-        candleSeries.setData(state.candles);
-    }
-}
-
-function connectWS() {
-    if (state.ws) state.ws.close();
-    const asset = assets[state.pair];
-
-    let wsUrl = asset.type === 'binance' 
-        ? `wss://fstream.binance.com/ws/${asset.symbol}@trade`
-        : `wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`;
-
-    state.ws = new WebSocket(wsUrl);
-
-    if (asset.type === 'finnhub') {
-        state.ws.onopen = () => state.ws.send(JSON.stringify({type:'subscribe', symbol: asset.symbol}));
-    }
-
-    state.ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        let price = null;
-
-        if (asset.type === 'binance') price = parseFloat(msg.p);
-        else if (msg.type === 'trade') price = parseFloat(msg.data[0].p);
-
-        if (price) {
-            updatePrice(price);
-            buildCandle(price, 1);
-        }
-    };
-}
-
-// ==================== CORE LOGIC ====================
-function updatePrice(price) {
-    const el = document.getElementById('priceText');
-    el.className = price >= state.lastPrice ? 'text-5xl font-black buy' : 'text-5xl font-black sell';
-    el.textContent = price.toFixed(2);
-    state.lastPrice = price;
-}
-
-function buildCandle(price, volume) {
-    const time = Math.floor(Date.now() / (state.timeframe * 60000)) * state.timeframe * 60;
-    if (!state.currentCandle || state.currentCandle.time !== time) {
-        if (state.currentCandle) state.candles.push(state.currentCandle);
-        state.currentCandle = { time, open: price, high: price, low: price, close: price };
-    } else {
-        state.currentCandle.high = Math.max(state.currentCandle.high, price);
-        state.currentCandle.low = Math.min(state.currentCandle.low, price);
-        state.currentCandle.close = price;
-    }
-    updateChart();
-    generateSignal();
-}
-
-function updateChart() {
-    if (!state.currentCandle) return;
-    candleSeries.update(state.currentCandle);
-}
-
-function generateSignal() {
-    if (state.candles.length < 20) return;
-    const current = state.currentCandle.close;
-    const rsi = 55; // simplified
-    let signal = current > 1 ? 'BUY' : 'SELL';
-    document.getElementById('signalText').textContent = signal;
-    document.getElementById('reasonText').textContent = 'Momentum Detected';
-}
-
-// ==================== INIT ====================
-async function initTerminal() {
-    document.getElementById('pairText').textContent = state.pair;
-    await fetchHistory();
-    connectWS();
-    loadTVWidget();
-}
-
-// Start
-createPairButtons();
-createTimeframeButtons();
-initTerminal();
-setInterval(() => {}, 1000);
-</script>
-</body>
-</html>
+// Inisialisasi Lightweight Chart
+function initChart() {
+    chart = LightweightCharts.createChart(document.getElementById('chart'), {
+        layout: { background:
