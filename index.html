@@ -1,878 +1,599 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>ECC Institutional AI Terminal</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-<style>
-
-body{
-    font-family:'Inter',sans-serif;
-    background:#020617;
-    color:#e2e8f0;
-}
-
-.card{
-    background:#081018;
-    border:1px solid #1e293b;
-    border-radius:24px;
-}
-
-.metric{
-    background:#0f172a;
-    border-radius:18px;
-    padding:20px;
-}
-
-.live-dot{
-    animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-    0%,100%{opacity:1;}
-    50%{opacity:.3;}
-}
-
-.price-up{
-    color:#4ade80;
-    transition:.2s;
-}
-
-.price-down{
-    color:#f87171;
-    transition:.2s;
-}
-
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>ECC • Live Prediction Terminal | XAUUSD ETHUSD BTCUSD</title>
+    <!-- Tailwind + Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #030712; color: #e2e8f0; }
+        .glass-card { background: rgba(15,23,42,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(71,85,105,0.4); border-radius: 28px; }
+        .metric-card { background: #0f172a; border-radius: 24px; border: 1px solid #1e293b; }
+        .price-up { color: #4ade80; text-shadow: 0 0 6px rgba(74,222,128,0.4); }
+        .price-down { color: #f87171; text-shadow: 0 0 6px rgba(248,113,113,0.4); }
+        .signal-buy { background: #064e3b; color: #4ade80; border: 1px solid #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.3); }
+        .signal-sell { background: #7f1a1a; color: #f87171; border: 1px solid #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.3); }
+        .signal-neutral { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+        .source-finnhub { border-left: 3px solid #3b82f6; }
+        .source-binance { border-left: 3px solid #f0b90b; }
+        .scroll-feed::-webkit-scrollbar { width: 4px; }
+        .scroll-feed::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
+        .scroll-feed::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .active-tab { background: #1e293b; border-bottom: 2px solid #f59e0b; }
+    </style>
 </head>
+<body class="min-h-screen pb-12">
 
-<body class="min-h-screen pb-10">
-
-<!-- HEADER -->
-<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur-lg border-b border-slate-800">
-
-    <div class="max-w-7xl mx-auto px-4 md:px-6 py-5 flex flex-col md:flex-row justify-between gap-5">
-
-        <div class="flex items-center gap-4">
-
-            <div class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-violet-500 bg-clip-text text-transparent">
-                ECC
-            </div>
-
-            <div>
-
-                <div class="text-xl md:text-2xl font-black tracking-tight">
-                    INSTITUTIONAL AI TERMINAL
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-5 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="text-4xl font-black bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 bg-clip-text text-transparent">ECC</div>
+                <div>
+                    <div class="text-lg md:text-xl font-bold tracking-tight">LIVE PREDICTION TERMINAL</div>
+                    <div class="flex flex-wrap gap-3 text-xs mt-1">
+                        <span id="finnhubStatus" class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> Finnhub: Init</span>
+                        <span id="binanceStatus" class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> Binance: Init</span>
+                    </div>
                 </div>
-
-                <div id="status" class="flex items-center gap-2 text-xs text-yellow-400 mt-1">
-
-                    <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
-
-                    Connecting to Binance...
-
-                </div>
-
             </div>
+            <div class="flex gap-3">
+                <button onclick="window.location.reload()" class="bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium transition">⟳ RESET</button>
+                <button onclick="toggleThemeMode()" class="bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium transition">🌓 DARK/LIGHT</button>
+            </div>
+        </div>
+    </header>
 
+    <div class="max-w-7xl mx-auto px-5 md:px-8 pt-8 space-y-7">
+
+        <!-- Pair Selection Tabs -->
+        <div class="flex gap-2 border-b border-slate-700 pb-2 overflow-x-auto">
+            <button id="tabXAU" class="px-5 py-2 rounded-t-xl font-bold text-amber-400 bg-slate-800/50 active-tab">XAUUSD (Gold)</button>
+            <button id="tabETH" class="px-5 py-2 rounded-t-xl font-bold text-slate-300 hover:text-white">ETHUSD (Ethereum)</button>
+            <button id="tabBTC" class="px-5 py-2 rounded-t-xl font-bold text-slate-300 hover:text-white">BTCUSD (Bitcoin)</button>
         </div>
 
-        <div class="flex items-center gap-3">
-
-            <select
-                id="symbolSelect"
-                onchange="switchPair(this.value)"
-                class="bg-slate-900 border border-slate-700 rounded-2xl px-5 py-3 text-sm md:text-base font-medium"
-            >
-
-                <option value="BTCUSDT">BTCUSDT</option>
-                <option value="ETHUSDT">ETHUSDT</option>
-                <option value="BNBUSDT">BNBUSDT</option>
-                <option value="SOLUSDT">SOLUSDT</option>
-
-            </select>
-
-            <button
-                onclick="openTradingView()"
-                class="bg-slate-800 hover:bg-slate-700 transition px-5 py-3 rounded-2xl text-sm font-medium"
-            >
-                📊 TradingView
-            </button>
-
+        <!-- HERO SIGNAL ROW (dinamis) -->
+        <div class="glass-card p-6 md:p-8 flex flex-col xl:flex-row justify-between gap-8 items-center">
+            <div class="w-full">
+                <div class="text-3xl font-semibold text-amber-400" id="pairLabel">XAU/USD</div>
+                <div id="priceLarge" class="text-6xl md:text-7xl font-black tabular-nums text-white mt-2 tracking-tight">0.00</div>
+                <div id="changeLarge" class="text-xl font-semibold mt-1">—</div>
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <div class="bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-xl text-sm text-emerald-400 font-medium">⚡ REALTIME TICK</div>
+                    <div class="bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl text-sm text-blue-400 font-medium">📡 FINNHUB WS</div>
+                    <div class="bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl text-sm text-amber-400 font-medium">🟡 BINANCE WS</div>
+                    <div class="bg-violet-500/10 border border-violet-500/30 px-4 py-2 rounded-xl text-sm text-violet-400 font-medium">🧠 PREDICTION ENGINE</div>
+                </div>
+            </div>
+            <div id="signalPill" class="text-4xl md:text-5xl font-black px-8 py-5 rounded-2xl text-center min-w-[240px] transition-all duration-300 signal-neutral">WAITING</div>
         </div>
 
+        <!-- CHART + MARKET INTELLIGENCE -->
+        <div class="grid lg:grid-cols-3 gap-7">
+            <!-- TradingView Chart Widget -->
+            <div class="lg:col-span-2 glass-card p-4 md:p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-extrabold text-lg">📈 LIVE CHART (TradingView)</h3>
+                    <div class="text-xs text-slate-400">Powered by TradingView</div>
+                </div>
+                <div id="tradingview_chart" style="height: 520px; width: 100%; border-radius: 20px; overflow: hidden;"></div>
+            </div>
+
+            <!-- PREDICTION & SIGNAL DETAILS -->
+            <div class="glass-card p-5 flex flex-col gap-5">
+                <div>
+                    <h3 class="text-xl font-extrabold mb-3">🧠 PREDICTION ENGINE</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="metric-card p-4 text-center">
+                            <div class="text-xs text-slate-400">RSI (14)</div>
+                            <div id="rsiNumber" class="text-4xl font-black mt-1">—</div>
+                        </div>
+                        <div class="metric-card p-4 text-center">
+                            <div class="text-xs text-slate-400">TREND</div>
+                            <div id="trendText" class="text-xl font-bold mt-1 text-emerald-400">—</div>
+                        </div>
+                        <div class="metric-card p-4 text-center">
+                            <div class="text-xs text-slate-400">VOLATILITY</div>
+                            <div id="volatilityLabel" class="text-xl font-bold mt-1 text-orange-400">—</div>
+                        </div>
+                        <div class="metric-card p-4 text-center">
+                            <div class="text-xs text-slate-400">PREDICTION SCORE</div>
+                            <div id="scoreValue" class="text-4xl font-black text-violet-400 mt-1">—</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-slate-700 pt-4">
+                    <div class="text-sm text-slate-400 mb-2">📊 PREDICTION REASON</div>
+                    <div id="signalReasonText" class="text-slate-200 text-sm leading-relaxed">Menunggu data real-time...</div>
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div class="metric-card p-3">
+                            <div class="text-xs text-slate-400">SUGGESTED SL</div>
+                            <div id="slValue" class="text-xl font-bold text-red-400">—</div>
+                        </div>
+                        <div class="metric-card p-3">
+                            <div class="text-xs text-slate-400">SUGGESTED TP</div>
+                            <div id="tpValue" class="text-xl font-bold text-emerald-400">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDER FEED + STATS -->
+        <div class="grid md:grid-cols-2 gap-7">
+            <div class="glass-card p-5">
+                <h3 class="text-xl font-extrabold mb-4 flex items-center gap-2">🔄 LIVE ORDER FEED</h3>
+                <div id="tradeFeedList" class="space-y-3 max-h-[320px] overflow-y-auto scroll-feed pr-1"></div>
+                <div class="text-center text-xs text-slate-500 mt-4">Tick real-time dari Finnhub & Binance</div>
+            </div>
+            <div class="glass-card p-5">
+                <h3 class="text-xl font-extrabold mb-4">📈 MARKET STATS</h3>
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">24h HIGH</div><div id="dailyHigh" class="text-2xl font-bold text-emerald-300">—</div></div>
+                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">24h LOW</div><div id="dailyLow" class="text-2xl font-bold text-red-300">—</div></div>
+                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">TICK VOLUME</div><div id="tickVolume" class="text-2xl font-bold text-cyan-300">0</div></div>
+                    <div class="metric-card p-4 text-center"><div class="text-slate-400 text-sm">ATR (14)</div><div id="atrValue" class="text-2xl font-bold text-amber-300">—</div></div>
+                </div>
+                <div class="mt-5 text-center text-xs text-slate-500">Prediksi berdasarkan RSI + MACD + ATR</div>
+            </div>
+        </div>
     </div>
 
-</header>
-
-<!-- CONTENT -->
-<div class="max-w-7xl mx-auto px-4 md:px-6 pt-8 space-y-8">
-
-    <!-- HERO -->
-    <div class="card p-6 md:p-8 flex flex-col lg:flex-row justify-between gap-8 items-center">
-
-        <div class="w-full">
-
-            <div id="pairDisplay" class="text-5xl md:text-6xl font-black">
-                BTCUSDT
-            </div>
-
-            <div
-                id="priceDisplay"
-                class="text-5xl md:text-8xl font-black tabular-nums text-white mt-3"
-            >
-                0.00
-            </div>
-
-            <div
-                id="changeDisplay"
-                class="text-xl md:text-2xl font-medium mt-2"
-            >
-                —
-            </div>
-
-        </div>
-
-        <div
-            id="mainSignal"
-            class="text-4xl md:text-6xl font-black px-10 py-5 rounded-3xl text-center min-w-[260px]"
-        >
-            WAIT
-        </div>
-
-    </div>
-
-    <!-- CHART -->
-    <div class="card p-4 md:p-6">
-
-        <div class="flex justify-between mb-4 items-center">
-
-            <h3 class="font-bold text-lg md:text-xl">
-                ECC REALTIME MARKET
-            </h3>
-
-            <div class="text-emerald-400 text-sm md:text-base">
-                AI Confidence:
-                <span id="confidence">—</span>%
-            </div>
-
-        </div>
-
-        <div
-            id="chart"
-            class="w-full rounded-2xl overflow-hidden"
-            style="height:620px;"
-        ></div>
-
-    </div>
-
-    <!-- PANELS -->
-    <div class="grid lg:grid-cols-2 gap-6">
-
-        <!-- SIGNAL -->
-        <div class="card p-6 md:p-8">
-
-            <h3 class="text-2xl font-bold mb-6">
-                ECC AI SIGNAL
-            </h3>
-
-            <div
-                id="signalReason"
-                class="text-slate-400 text-lg mb-6"
-            >
-                Waiting for market data...
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        STOP LOSS
-                    </div>
-
-                    <div
-                        id="slDisplay"
-                        class="text-3xl md:text-4xl font-bold text-red-400 mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        TAKE PROFIT
-                    </div>
-
-                    <div
-                        id="tpDisplay"
-                        class="text-3xl md:text-4xl font-bold text-emerald-400 mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- MARKET -->
-        <div class="card p-6 md:p-8">
-
-            <h3 class="text-2xl font-bold mb-6">
-                MARKET INTELLIGENCE
-            </h3>
-
-            <div class="grid grid-cols-2 gap-6">
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        RSI (14)
-                    </div>
-
-                    <div
-                        id="rsiDisplay"
-                        class="text-4xl md:text-5xl font-bold mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        TREND
-                    </div>
-
-                    <div
-                        id="trendDisplay"
-                        class="text-3xl md:text-4xl font-bold text-emerald-400 mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        LIVE PRICE
-                    </div>
-
-                    <div
-                        id="livePriceMini"
-                        class="text-3xl md:text-4xl font-bold text-cyan-400 mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-                <div class="metric">
-
-                    <div class="text-xs text-slate-400">
-                        AI SCORE
-                    </div>
-
-                    <div
-                        id="aiScore"
-                        class="text-4xl md:text-5xl font-bold text-violet-400 mt-2"
-                    >
-                        —
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<script>
-
-/////////////////////////////////////////////////////
-// GLOBAL
-/////////////////////////////////////////////////////
-
-let chart;
-let candleSeries;
-let ws = null;
-let reconnectTimeout = null;
-
-let currentPair = "BTCUSDT";
-
-let lastPrice = 0;
-
-let candleData = [];
-
-/////////////////////////////////////////////////////
-// CHART
-/////////////////////////////////////////////////////
-
-function initChart(){
-
-    const container =
-        document.getElementById("chart");
-
-    chart =
-        LightweightCharts.createChart(container,{
-
-        width:container.clientWidth,
-
-        height:window.innerWidth < 768 ? 420 : 620,
-
-        layout:{
-            background:{color:"#0a1420"},
-            textColor:"#cbd5e1"
-        },
-
-        grid:{
-            vertLines:{color:"#1e293b"},
-            horzLines:{color:"#1e293b"}
-        },
-
-        rightPriceScale:{
-            borderColor:"#334155"
-        },
-
-        timeScale:{
-            borderColor:"#334155",
-            timeVisible:true
-        }
-
-    });
-
-    candleSeries =
-        chart.addCandlestickSeries({
-
-        upColor:"#22c55e",
-        downColor:"#ef4444",
-
-        borderUpColor:"#22c55e",
-        borderDownColor:"#ef4444",
-
-        wickUpColor:"#22c55e",
-        wickDownColor:"#ef4444"
-
-    });
-
-}
-
-/////////////////////////////////////////////////////
-// LOAD HISTORY
-/////////////////////////////////////////////////////
-
-async function loadHistory(pair){
-
-    try{
-
-        const response =
-            await fetch(
-                `https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=1m&limit=300`
-            );
-
-        const data =
-            await response.json();
-
-        candleData =
-            data.map(k => ({
-
-                time:Math.floor(k[0]/1000),
-
-                open:parseFloat(k[1]),
-                high:parseFloat(k[2]),
-                low:parseFloat(k[3]),
-                close:parseFloat(k[4])
-
-            }));
-
-        candleSeries.setData(candleData);
-
-        chart.timeScale().fitContent();
-
-    }catch(err){
-
-        console.error(err);
-
-    }
-
-}
-
-/////////////////////////////////////////////////////
-// REALTIME WEBSOCKET
-/////////////////////////////////////////////////////
-
-function connectWebSocket(pair){
-
-    if(ws){
-        ws.close();
-    }
-
-    clearTimeout(reconnectTimeout);
-
-    document.getElementById("status").innerHTML = `
-        <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-        Connecting...
-    `;
-
-    /////////////////////////////////////////////////////
-
-    const tradeStream =
-        `${pair.toLowerCase()}@aggTrade`;
-
-    const klineStream =
-        `${pair.toLowerCase()}@kline_1m`;
-
-    /////////////////////////////////////////////////////
-
-    ws = new WebSocket(
-        `wss://fstream.binance.com/stream?streams=${tradeStream}/${klineStream}`
-    );
-
-    /////////////////////////////////////////////////////
-
-    ws.onopen = () => {
-
-        document.getElementById("status").innerHTML = `
-            <span class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></span>
-            LIVE REALTIME
-        `;
-
-    };
-
-    /////////////////////////////////////////////////////
-
-    ws.onmessage = (event) => {
-
-        try{
-
-            const message =
-                JSON.parse(event.data);
-
-            /////////////////////////////////////////////////////
-            // LIVE TICK PRICE
-            /////////////////////////////////////////////////////
-
-            if(message.stream.includes("@aggTrade")){
-
-                const trade = message.data;
-
-                const livePrice =
-                    parseFloat(trade.p);
-
-                updatePrice(livePrice);
-
+    <script>
+        // ======================= 🔐 KONFIGURASI =======================
+        const FINNHUB_API_KEY = "d8aamj1r01ql25r6pkv0d8aamj1r01ql25r6pkvg";
+        // Mapping untuk XAU, ETH, BTC
+        const PAIRS = {
+            XAU: { finnhub: "OANDA:XAU_USD", binance: "xauusdt", label: "XAU/USD", tvSymbol: "OANDA:XAUUSD", decimal: 2 },
+            ETH: { finnhub: "OANDA:ETH_USD", binance: "ethusdt", label: "ETH/USD", tvSymbol: "OANDA:ETHUSD", decimal: 1 },
+            BTC: { finnhub: "OANDA:BTC_USD", binance: "btcusdt", label: "BTC/USD", tvSymbol: "BINANCE:BTCUSDT", decimal: 0 }
+        };
+        let currentPair = "XAU"; // XAU, ETH, atau BTC
+        let finnhubSocket = null;
+        let binanceSocket = null;
+        let lastPrice = 0;
+        let dailyHigh = 0;
+        let dailyLow = Infinity;
+        let tickCounter = 0;
+        let finnhubActive = false;
+        let binanceActive = false;
+        
+        // Data untuk kalkulasi teknis
+        let priceHistory = [];
+        let candleData = [];
+        let currentCandle = null;
+        let lastCandleTime = null;
+        
+        // DOM Elements
+        const priceLarge = document.getElementById("priceLarge");
+        const changeLarge = document.getElementById("changeLarge");
+        const signalPill = document.getElementById("signalPill");
+        const signalReasonText = document.getElementById("signalReasonText");
+        const slValue = document.getElementById("slValue");
+        const tpValue = document.getElementById("tpValue");
+        const rsiNumber = document.getElementById("rsiNumber");
+        const trendText = document.getElementById("trendText");
+        const volatilityLabel = document.getElementById("volatilityLabel");
+        const scoreValue = document.getElementById("scoreValue");
+        const dailyHighEl = document.getElementById("dailyHigh");
+        const dailyLowEl = document.getElementById("dailyLow");
+        const tickVolumeSpan = document.getElementById("tickVolume");
+        const atrSpan = document.getElementById("atrValue");
+        const tradeFeedList = document.getElementById("tradeFeedList");
+        const pairLabel = document.getElementById("pairLabel");
+        
+        let tvWidget = null;
+        
+        // ======================= FUNGSI TEKNIKAL =======================
+        function calculateRSI(prices, period = 14) {
+            if (prices.length < period + 1) return 50;
+            let gains = 0, losses = 0;
+            for (let i = prices.length - period; i < prices.length; i++) {
+                let diff = prices[i] - prices[i-1];
+                if (diff >= 0) gains += diff;
+                else losses += Math.abs(diff);
             }
-
-            /////////////////////////////////////////////////////
-            // LIVE CANDLE
-            /////////////////////////////////////////////////////
-
-            if(message.stream.includes("@kline_1m")){
-
-                const k =
-                    message.data.k;
-
-                const candle = {
-
-                    time:Math.floor(k.t/1000),
-
-                    open:parseFloat(k.o),
-                    high:parseFloat(k.h),
-                    low:parseFloat(k.l),
-                    close:parseFloat(k.c)
-
-                };
-
-                candleSeries.update(candle);
-
-                /////////////////////////////////////////////////////
-
-                if(
-                    candleData.length &&
-                    candleData[candleData.length - 1].time === candle.time
-                ){
-
-                    candleData[candleData.length - 1] = candle;
-
-                }else{
-
-                    candleData.push(candle);
-
-                    if(candleData.length > 500){
-                        candleData.shift();
-                    }
-
+            let avgGain = gains / period;
+            let avgLoss = losses / period;
+            if (avgLoss === 0) return 100;
+            let rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+        
+        function calculateMACDSignal(prices, fast=12, slow=26) {
+            if (prices.length < slow+1) return 0;
+            let emaFast = 0, emaSlow = 0;
+            let multiplierFast = 2/(fast+1);
+            let multiplierSlow = 2/(slow+1);
+            emaFast = prices[0];
+            emaSlow = prices[0];
+            for(let i=1; i<prices.length; i++) {
+                emaFast = (prices[i] - emaFast) * multiplierFast + emaFast;
+                emaSlow = (prices[i] - emaSlow) * multiplierSlow + emaSlow;
+            }
+            let macd = emaFast - emaSlow;
+            let norm = (macd / prices[prices.length-1]) * 1000;
+            return Math.min(100, Math.max(-100, norm));
+        }
+        
+        function calculateATR(period = 14) {
+            if (candleData.length < period + 1) return currentPair === 'BTC' ? 150 : (currentPair === 'ETH' ? 15 : 2.5);
+            let trSum = 0;
+            for (let i = candleData.length - period; i < candleData.length; i++) {
+                let high = candleData[i].high;
+                let low = candleData[i].low;
+                let prevClose = candleData[i-1].close;
+                let tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+                trSum += tr;
+            }
+            return trSum / period;
+        }
+        
+        function getVolatilityLevel() {
+            if (candleData.length < 10) return "MEDIUM";
+            let sumRange = 0;
+            for (let i = candleData.length-10; i < candleData.length; i++) {
+                sumRange += (candleData[i].high - candleData[i].low);
+            }
+            let avgRange = sumRange / 10;
+            if (currentPair === 'BTC') {
+                if (avgRange > 300) return "HIGH 🔥";
+                if (avgRange > 120) return "MEDIUM ⚡";
+                return "LOW 💤";
+            } else if (currentPair === 'ETH') {
+                if (avgRange > 25) return "HIGH 🔥";
+                if (avgRange > 10) return "MEDIUM ⚡";
+                return "LOW 💤";
+            } else {
+                if (avgRange > 6) return "HIGH 🔥";
+                if (avgRange > 2.4) return "MEDIUM ⚡";
+                return "LOW 💤";
+            }
+        }
+        
+        function generatePrediction(price, rsi, macdSignal) {
+            let confidence = 50;
+            let direction = "";
+            let reason = "";
+            if (rsi < 30 && macdSignal > 0) {
+                direction = "STRONG BUY";
+                confidence = 92;
+                reason = `Oversold (RSI ${rsi.toFixed(1)}) + MACD bullish divergence`;
+            } else if (rsi < 40 && macdSignal > -20) {
+                direction = "BUY";
+                confidence = 78;
+                reason = `Menuju oversold dengan momentum positif`;
+            } else if (rsi > 70 && macdSignal < 0) {
+                direction = "STRONG SELL";
+                confidence = 91;
+                reason = `Overbought (RSI ${rsi.toFixed(1)}) + MACD bearish`;
+            } else if (rsi > 60 && macdSignal < 10) {
+                direction = "SELL";
+                confidence = 72;
+                reason = `Overbought moderate, potensi koreksi`;
+            } else if (rsi > 45 && rsi < 55 && Math.abs(macdSignal) < 10) {
+                direction = "NEUTRAL";
+                confidence = 55;
+                reason = "Sideways, tidak ada sinyal jelas";
+            } else if (rsi > 50 && macdSignal > 15) {
+                direction = "BULLISH WATCH";
+                confidence = 68;
+                reason = "Momentum positif, tunggu konfirmasi";
+            } else if (rsi < 50 && macdSignal < -15) {
+                direction = "BEARISH WATCH";
+                confidence = 66;
+                reason = "Momentum negatif, waspadai penurunan";
+            } else {
+                direction = "NEUTRAL";
+                confidence = 58;
+                reason = "Kondisi mixed, wait and see";
+            }
+            return { signal: direction, confidence, reason };
+        }
+        
+        function updatePredictionAndIndicators(price) {
+            if (priceHistory.length < 20) return;
+            const rsi = calculateRSI(priceHistory, 14);
+            const macdSignal = calculateMACDSignal(priceHistory);
+            const atr = calculateATR(14);
+            atrSpan.innerText = atr.toFixed(PAIRS[currentPair].decimal === 0 ? 0 : (PAIRS[currentPair].decimal === 1 ? 1 : 2));
+            rsiNumber.innerText = rsi.toFixed(1);
+            
+            let trend = rsi > 55 ? "BULLISH" : (rsi < 45 ? "BEARISH" : "SIDEWAYS");
+            trendText.innerText = trend;
+            trendText.className = `text-xl font-bold mt-1 ${trend === "BULLISH" ? "text-emerald-400" : trend==="BEARISH" ? "text-red-400" : "text-yellow-400"}`;
+            volatilityLabel.innerText = getVolatilityLevel();
+            
+            const pred = generatePrediction(price, rsi, macdSignal);
+            scoreValue.innerText = pred.confidence;
+            signalReasonText.innerText = pred.reason;
+            signalPill.innerText = pred.signal;
+            signalPill.classList.remove("signal-buy", "signal-sell", "signal-neutral");
+            if (pred.signal.includes("BUY")) signalPill.classList.add("signal-buy");
+            else if (pred.signal.includes("SELL")) signalPill.classList.add("signal-sell");
+            else signalPill.classList.add("signal-neutral");
+            
+            let sl = price - (atr * 1.5);
+            let tp = price + (atr * 2.2);
+            if (pred.signal.includes("SELL")) {
+                sl = price + (atr * 1.5);
+                tp = price - (atr * 2.2);
+            }
+            let decimals = PAIRS[currentPair].decimal;
+            slValue.innerText = sl.toFixed(decimals);
+            tpValue.innerText = tp.toFixed(decimals);
+        }
+        
+        function processTickForCandle(price, timestamp) {
+            const minute = Math.floor(timestamp / 60000);
+            if (lastCandleTime !== minute) {
+                if (currentCandle) {
+                    candleData.push(currentCandle);
+                    if (candleData.length > 100) candleData.shift();
                 }
-
-                /////////////////////////////////////////////////////
-
-                updateIndicators(candle.close);
-
-                chart.timeScale().scrollToRealTime();
-
+                currentCandle = {
+                    time: minute,
+                    open: price,
+                    high: price,
+                    low: price,
+                    close: price
+                };
+                lastCandleTime = minute;
+            } else if (currentCandle) {
+                currentCandle.high = Math.max(currentCandle.high, price);
+                currentCandle.low = Math.min(currentCandle.low, price);
+                currentCandle.close = price;
             }
-
-        }catch(err){
-
-            console.error(err);
-
         }
-
-    };
-
-    /////////////////////////////////////////////////////
-
-    ws.onerror = () => {
-
-        document.getElementById("status").innerHTML =
-            `⚠️ WebSocket Error`;
-
-    };
-
-    /////////////////////////////////////////////////////
-
-    ws.onclose = () => {
-
-        document.getElementById("status").innerHTML =
-            `⚠️ Reconnecting...`;
-
-        reconnectTimeout =
-            setTimeout(() => {
-
-                connectWebSocket(pair);
-
-            },5000);
-
-    };
-
-}
-
-/////////////////////////////////////////////////////
-// UPDATE PRICE
-/////////////////////////////////////////////////////
-
-function updatePrice(price){
-
-    const priceEl =
-        document.getElementById("priceDisplay");
-
-    const mini =
-        document.getElementById("livePriceMini");
-
-    /////////////////////////////////////////////////////
-
-    const change =
-        lastPrice
-        ? ((price - lastPrice) / lastPrice * 100)
-        : 0;
-
-    /////////////////////////////////////////////////////
-
-    if(price > lastPrice){
-
-        priceEl.classList.remove("price-down");
-
-        priceEl.classList.add("price-up");
-
-    }
-    else if(price < lastPrice){
-
-        priceEl.classList.remove("price-up");
-
-        priceEl.classList.add("price-down");
-
-    }
-
-    /////////////////////////////////////////////////////
-
-    const formatted =
-        price.toLocaleString(
-            "id-ID",
-            {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
+        
+        function updatePriceUI(price, source) {
+            const decimals = PAIRS[currentPair].decimal;
+            const change = lastPrice ? ((price - lastPrice) / lastPrice * 100) : 0;
+            priceLarge.innerText = price.toFixed(decimals);
+            if (price > lastPrice) {
+                priceLarge.classList.add("price-up");
+                priceLarge.classList.remove("price-down");
+                changeLarge.innerHTML = `<span class="text-emerald-400">▲ +${change.toFixed(3)}%</span>`;
+            } else if (price < lastPrice) {
+                priceLarge.classList.add("price-down");
+                priceLarge.classList.remove("price-up");
+                changeLarge.innerHTML = `<span class="text-red-400">▼ ${change.toFixed(3)}%</span>`;
+            } else {
+                changeLarge.innerHTML = `<span class="text-slate-400">0.00%</span>`;
             }
-        );
-
-    priceEl.textContent = formatted;
-
-    mini.textContent = formatted;
-
-    /////////////////////////////////////////////////////
-
-    document.getElementById("changeDisplay").innerHTML =
-
-        change >= 0
-
-        ? `<span class="text-emerald-400">
-            ▲ +${change.toFixed(3)}%
-           </span>`
-
-        : `<span class="text-red-400">
-            ▼ ${change.toFixed(3)}%
-           </span>`;
-
-    lastPrice = price;
-
-}
-
-/////////////////////////////////////////////////////
-// RSI
-/////////////////////////////////////////////////////
-
-function calculateRSI(period = 14){
-
-    if(candleData.length < period + 1){
-        return 50;
-    }
-
-    let gains = 0;
-    let losses = 0;
-
-    for(
-        let i = candleData.length - period;
-        i < candleData.length;
-        i++
-    ){
-
-        const diff =
-            candleData[i].close -
-            candleData[i - 1].close;
-
-        if(diff >= 0){
-            gains += diff;
-        }else{
-            losses += Math.abs(diff);
+            if (price > dailyHigh) dailyHigh = price;
+            if (price < dailyLow) dailyLow = price;
+            dailyHighEl.innerText = dailyHigh.toFixed(decimals);
+            dailyLowEl.innerText = (dailyLow === Infinity ? price : dailyLow).toFixed(decimals);
+            lastPrice = price;
+            
+            priceHistory.push(price);
+            if (priceHistory.length > 100) priceHistory.shift();
+            
+            const now = Date.now();
+            processTickForCandle(price, now);
+            updatePredictionAndIndicators(price);
         }
-
-    }
-
-    const avgGain =
-        gains / period;
-
-    const avgLoss =
-        losses / period;
-
-    if(avgLoss === 0){
-        return 100;
-    }
-
-    const rs =
-        avgGain / avgLoss;
-
-    return 100 - (100 / (1 + rs));
-
-}
-
-/////////////////////////////////////////////////////
-// SIGNAL
-/////////////////////////////////////////////////////
-
-function generateSignal(price,rsi){
-
-    if(rsi < 30){
-
-        return{
-            signal:"STRONG BUY",
-            confidence:92,
-            reason:"Oversold market detected"
+        
+        function addToFeed(price, direction, source) {
+            const decimals = PAIRS[currentPair].decimal;
+            const feedItem = document.createElement("div");
+            feedItem.className = `metric-card p-3 flex justify-between items-center transition-all hover:bg-slate-800/50 ${source === 'Finnhub' ? 'source-finnhub' : 'source-binance'}`;
+            feedItem.innerHTML = `
+                <div>
+                    <div class="text-sm font-bold ${direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}">${direction}</div>
+                    <div class="text-[11px] text-slate-500">${source} • ${new Date().toLocaleTimeString()}</div>
+                </div>
+                <div class="font-mono text-lg font-semibold">${price.toFixed(decimals)}</div>
+            `;
+            tradeFeedList.prepend(feedItem);
+            while (tradeFeedList.children.length > 20) tradeFeedList.removeChild(tradeFeedList.lastChild);
+        }
+        
+        // ======================= WEBSOCKET =======================
+        function closeAllSockets() {
+            if (finnhubSocket) finnhubSocket.close();
+            if (binanceSocket) binanceSocket.close();
+        }
+        
+        function connectFinnhub() {
+            if (finnhubSocket) finnhubSocket.close();
+            finnhubSocket = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
+            const statusEl = document.getElementById("finnhubStatus");
+            finnhubSocket.onopen = () => {
+                finnhubActive = true;
+                finnhubSocket.send(JSON.stringify({ type: "subscribe", symbol: PAIRS[currentPair].finnhub }));
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Finnhub: Live';
+            };
+            finnhubSocket.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                if (msg.type === "trade" && msg.data) {
+                    msg.data.forEach(trade => {
+                        const price = parseFloat(trade.p);
+                        if (isNaN(price)) return;
+                        tickCounter++;
+                        tickVolumeSpan.innerText = tickCounter;
+                        updatePriceUI(price, "Finnhub");
+                        const direction = (price >= lastPrice) ? "BUY" : "SELL";
+                        addToFeed(price, direction, "Finnhub");
+                    });
+                }
+            };
+            finnhubSocket.onerror = () => {
+                finnhubActive = false;
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Finnhub: Error';
+            };
+            finnhubSocket.onclose = () => {
+                finnhubActive = false;
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> Finnhub: Recon';
+                setTimeout(connectFinnhub, 5000);
+            };
+        }
+        
+        function connectBinance() {
+            if (binanceSocket) binanceSocket.close();
+            const streamName = `${PAIRS[currentPair].binance}@trade`;
+            binanceSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${streamName}`);
+            const statusEl = document.getElementById("binanceStatus");
+            binanceSocket.onopen = () => {
+                binanceActive = true;
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Binance: Live';
+            };
+            binanceSocket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data && data.p) {
+                    const price = parseFloat(data.p);
+                    if (isNaN(price)) return;
+                    tickCounter++;
+                    tickVolumeSpan.innerText = tickCounter;
+                    updatePriceUI(price, "Binance");
+                    const direction = (price >= lastPrice) ? "BUY" : "SELL";
+                    addToFeed(price, direction, "Binance");
+                }
+            };
+            binanceSocket.onerror = () => {
+                binanceActive = false;
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Binance: Error';
+            };
+            binanceSocket.onclose = () => {
+                binanceActive = false;
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> Binance: Recon';
+                setTimeout(connectBinance, 5000);
+            };
+        }
+        
+        // ======================= TRADINGVIEW WIDGET =======================
+        function loadTradingViewWidget() {
+            const container = document.getElementById("tradingview_chart");
+            if (tvWidget) {
+                try { tvWidget.remove(); } catch(e) {}
+                container.innerHTML = "";
+            }
+            const script = document.createElement('script');
+            script.src = 'https://s3.tradingview.com/tv.js';
+            script.onload = () => {
+                tvWidget = new TradingView.widget({
+                    container_id: "tradingview_chart",
+                    symbol: PAIRS[currentPair].tvSymbol,
+                    interval: "1",
+                    timezone: "Etc/UTC",
+                    theme: "dark",
+                    style: "1",
+                    locale: "id",
+                    toolbar_bg: "#f1f3f6",
+                    allow_symbol_change: true,
+                    studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies", "MASimple@tv-basicstudies"],
+                    enable_publishing: false,
+                    hide_side_toolbar: false,
+                    show_popup_button: true,
+                    save_image: false,
+                    height: 520,
+                    width: "100%"
+                });
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Reset semua data saat ganti pair
+        function switchPair(pair) {
+            currentPair = pair;
+            pairLabel.innerText = PAIRS[pair].label;
+            // Reset data history
+            priceHistory = [];
+            candleData = [];
+            currentCandle = null;
+            lastCandleTime = null;
+            lastPrice = 0;
+            dailyHigh = 0;
+            dailyLow = Infinity;
+            tickCounter = 0;
+            tickVolumeSpan.innerText = "0";
+            // Reset tampilan
+            priceLarge.innerText = "0.00";
+            changeLarge.innerHTML = "—";
+            signalPill.innerText = "WAITING";
+            signalReasonText.innerText = "Menunggu data real-time...";
+            // Reconnect sockets
+            closeAllSockets();
+            connectFinnhub();
+            connectBinance();
+            // Ganti chart TradingView
+            loadTradingViewWidget();
+            // Inisialisasi dummy data agar tidak kosong
+            let startPrice = pair === 'XAU' ? 2635 : (pair === 'ETH' ? 3200 : 58000);
+            for (let i = 0; i < 30; i++) {
+                let p = startPrice + (Math.random() - 0.5) * (pair === 'BTC' ? 300 : (pair === 'ETH' ? 20 : 4));
+                priceHistory.push(p);
+                lastPrice = p;
+            }
+            for (let i = 0; i < 20; i++) {
+                candleData.push({
+                    time: i,
+                    open: startPrice + i,
+                    high: startPrice + i + (Math.random() * (pair === 'BTC' ? 200 : (pair === 'ETH' ? 15 : 3))),
+                    low: startPrice + i - (Math.random() * (pair === 'BTC' ? 150 : (pair === 'ETH' ? 12 : 2))),
+                    close: startPrice + i
+                });
+            }
+            updatePriceUI(priceHistory[priceHistory.length-1], "System");
+        }
+        
+        function toggleThemeMode() {
+            document.body.classList.toggle("invert");
+        }
+        
+        // Event tab switching
+        document.getElementById("tabXAU").addEventListener("click", () => {
+            if (currentPair === "XAU") return;
+            document.getElementById("tabXAU").classList.add("active-tab");
+            document.getElementById("tabETH").classList.remove("active-tab");
+            document.getElementById("tabBTC").classList.remove("active-tab");
+            switchPair("XAU");
+        });
+        document.getElementById("tabETH").addEventListener("click", () => {
+            if (currentPair === "ETH") return;
+            document.getElementById("tabETH").classList.add("active-tab");
+            document.getElementById("tabXAU").classList.remove("active-tab");
+            document.getElementById("tabBTC").classList.remove("active-tab");
+            switchPair("ETH");
+        });
+        document.getElementById("tabBTC").addEventListener("click", () => {
+            if (currentPair === "BTC") return;
+            document.getElementById("tabBTC").classList.add("active-tab");
+            document.getElementById("tabXAU").classList.remove("active-tab");
+            document.getElementById("tabETH").classList.remove("active-tab");
+            switchPair("BTC");
+        });
+        
+        window.onload = () => {
+            // Inisialisasi dummy data untuk XAU
+            let startPrice = 2635;
+            for (let i = 0; i < 30; i++) {
+                let p = startPrice + (Math.random() - 0.5) * 4;
+                priceHistory.push(p);
+                lastPrice = p;
+            }
+            for (let i = 0; i < 20; i++) {
+                candleData.push({
+                    time: i,
+                    open: startPrice + i,
+                    high: startPrice + i + Math.random()*3,
+                    low: startPrice + i - Math.random()*2,
+                    close: startPrice + i
+                });
+            }
+            updatePriceUI(priceHistory[priceHistory.length-1], "System");
+            connectFinnhub();
+            connectBinance();
+            loadTradingViewWidget();
+            setInterval(() => {
+                if (priceHistory.length > 10) updatePredictionAndIndicators(lastPrice);
+            }, 4000);
         };
-
-    }
-
-    if(rsi > 70){
-
-        return{
-            signal:"STRONG SELL",
-            confidence:89,
-            reason:"Overbought market detected"
-        };
-
-    }
-
-    return{
-        signal:"NEUTRAL",
-        confidence:65,
-        reason:"Market consolidation"
-    };
-
-}
-
-/////////////////////////////////////////////////////
-// INDICATORS
-/////////////////////////////////////////////////////
-
-function updateIndicators(price){
-
-    const rsi =
-        calculateRSI();
-
-    const signal =
-        generateSignal(price,rsi);
-
-    /////////////////////////////////////////////////////
-
-    document.getElementById("rsiDisplay")
-        .textContent = rsi.toFixed(1);
-
-    document.getElementById("confidence")
-        .textContent = signal.confidence;
-
-    document.getElementById("signalReason")
-        .textContent = signal.reason;
-
-    document.getElementById("aiScore")
-        .textContent = signal.confidence;
-
-    /////////////////////////////////////////////////////
-
-    const trend =
-        rsi > 55
-        ? "BULLISH"
-        : rsi < 45
-        ? "BEARISH"
-        : "SIDEWAYS";
-
-    document.getElementById("trendDisplay")
-        .textContent = trend;
-
-    /////////////////////////////////////////////////////
-
-    const signalEl =
-        document.getElementById("mainSignal");
-
-    signalEl.textContent =
-        signal.signal;
-
-    /////////////////////////////////////////////////////
-
-    if(signal.signal.includes("BUY")){
-
-        signalEl.style.backgroundColor =
-            "#052e16";
-
-        signalEl.style.color =
-            "#4ade80";
-
-    }
-    else if(signal.signal.includes("SELL")){
-
-        signalEl.style.backgroundColor =
-            "#450a0a";
-
-        signalEl.style.color =
-            "#f87171";
-
-    }
-    else{
-
-        signalEl.style.backgroundColor =
-            "#1e293b";
-
-        signalEl.style.color =
-            "#cbd5e1";
-
-    }
-
-    /////////////////////////////////////////////////////
-
-    const sl =
-        price - (price * 0.005);
-
-    const tp =
-        price + (price * 0.01);
-
-    document.getElementById("slDisplay")
-        .textContent =
-            sl.toFixed(2);
-
-    document.getElementById("tpDisplay")
-        .textContent =
-            tp.toFixed(2);
-
-}
-
-/////////////////////////////////////////////////////
-// SWITCH PAIR
-/////////////////////////////////////////////////////
-
-async function switchPair(pair){
-
-    currentPair = pair;
-
-    lastPrice = 0;
-
-    document.getElementById("pairDisplay")
-        .textContent = pair;
-
-    await loadHistory(pair);
-
-    connectWebSocket(pair);
-
-}
-
-/////////////////////////////////////////////////////
-// TRADINGVIEW
-/////////////////////////////////////////////////////
-
-function openTradingView(){
-
-    window.open(
-        `https://www.tradingview.com/chart/?symbol=BINANCE:${currentPair}`,
-        "_blank"
-    );
-
-}
-
-/////////////////////////////////////////////////////
-// RESIZE
-/////////////////////////////////////////////////////
-
-window.addEventListener("resize", () => {
-
-    if(chart){
-
-        chart.resize(
-            document.getElementById("chart").clientWidth,
-            window.innerWidth < 768 ? 420 : 620
-        );
-
-    }
-
-});
-
-/////////////////////////////////////////////////////
-// INIT
-/////////////////////////////////////////////////////
-
-window.onload = async () => {
-
-    initChart();
-
-    await loadHistory(currentPair);
-
-    connectWebSocket(currentPair);
-
-};
-
-</script>
-
+    </script>
 </body>
 </html>
