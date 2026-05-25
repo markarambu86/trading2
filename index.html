@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ECC QUANT TERMINAL ULTRA</title>
+<title>ECC Lite Trading Terminal - Perfected</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 *{
 margin:0;
@@ -22,88 +22,43 @@ body{
 font-family:'Inter',sans-serif;
 background:#020617;
 color:#e2e8f0;
-overflow:hidden;
+overflow-x:hidden;
 }
 
 .card{
 background:#081018;
 border:1px solid #1e293b;
-box-shadow:0 0 25px rgba(0,0,0,.45);
+border-radius:24px;
+}
+
+.buy{
+color:#22c55e;
+}
+
+.sell{
+color:#ef4444;
+}
+
+.wait{
+color:#94a3b8;
 }
 
 .metric{
 background:#0f172a;
-border:1px solid #1e293b;
-border-radius:24px;
+border-radius:18px;
 padding:16px;
 }
 
-.buy-bg{
-background:linear-gradient(135deg,#10b981,#14b8a6);
+button{
+transition:.2s;
 }
 
-.sell-bg{
-background:linear-gradient(135deg,#ef4444,#dc2626);
-}
-
-.wait-bg{
-background:linear-gradient(135deg,#475569,#334155);
-}
-
-.glow{
-box-shadow:0 0 40px rgba(16,185,129,.18);
-}
-
-.price-up{
-color:#22c55e;
-animation:up .25s;
-}
-
-.price-down{
-color:#ef4444;
-animation:down .25s;
-}
-
-@keyframes up{
-from{transform:scale(1.04)}
-to{transform:scale(1)}
-}
-
-@keyframes down{
-from{transform:scale(.96)}
-to{transform:scale(1)}
-}
-
-.badge{
-padding:4px 10px;
-border-radius:999px;
-font-size:11px;
-font-weight:700;
-}
-
-.green{
-background:rgba(16,185,129,.15);
-color:#10b981;
-}
-
-.red{
-background:rgba(239,68,68,.15);
-color:#ef4444;
-}
-
-.yellow{
-background:rgba(234,179,8,.15);
-color:#eab308;
-}
-
-.blue{
-background:rgba(59,130,246,.15);
-color:#3b82f6;
+button:hover{
+transform:translateY(-2px);
 }
 
 ::-webkit-scrollbar{
 width:7px;
-height:7px;
 }
 
 ::-webkit-scrollbar-thumb{
@@ -115,1614 +70,370 @@ border-radius:10px;
 
 <body>
 
-<header class="border-b border-slate-800 bg-[#081018]">
-
-<div class="max-w-screen-2xl mx-auto px-5 py-4 flex flex-wrap justify-between items-center gap-5">
+<header class="sticky top-0 z-50 bg-[#081018]/95 backdrop-blur border-b border-slate-800">
+<div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+<div>
+<div class="text-3xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+ECC LITE TERMINAL
+</div>
+<div class="text-xs text-slate-400">
+REALTIME • LIGHTWEIGHT • SMART MONEY • OPTIMIZED
+</div>
+</div>
 
 <div class="flex items-center gap-4">
-
-<div class="text-5xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-ECC
+<div id="clock" class="font-mono"></div>
+<div class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">
+LIVE
 </div>
-
-<div>
-
-<div class="text-2xl font-black">
-QUANT TERMINAL ULTRA
 </div>
-
-<div class="text-xs text-slate-400">
-SMART MONEY • ORDERFLOW • MULTI TF • AI ENGINE
 </div>
-
-</div>
-
-</div>
-
-<div class="flex items-center gap-3 flex-wrap">
-
-<div class="badge green">
-LIVE WS
-</div>
-
-<div class="badge blue">
-SMART MONEY
-</div>
-
-<div class="badge yellow">
-AI ACTIVE
-</div>
-
-<div class="badge red">
-ORDERFLOW
-</div>
-
-<div id="latencyText"
-class="font-mono text-sm">
-0ms
-</div>
-
-<div id="clock"
-class="font-mono text-lg">
-00:00:00
-</div>
-
-</div>
-
-</div>
-
 </header>
 
-<div class="h-[calc(100vh-82px)] overflow-hidden">
+<div class="max-w-7xl mx-auto p-4 space-y-4">
 
-<div class="grid grid-cols-1 xl:grid-cols-12 gap-4 p-4 h-full">
-
-<!-- LEFT -->
-<div class="xl:col-span-9 flex flex-col gap-4 h-full">
-
-<!-- TOP -->
-<div class="card rounded-3xl p-5">
-
+<div class="card p-5">
 <div class="flex flex-wrap justify-between items-center gap-5">
-
 <div>
-
-<div id="pairName"
-class="text-5xl font-black">
-BTCUSDT
+<div id="pairText" class="text-4xl font-black">BTCUSDT</div>
+<div id="priceText" class="text-5xl font-black buy">0.00</div>
+<div id="statusText" class="text-slate-400 mt-2">Waiting market...</div>
 </div>
-
-<div id="livePrice"
-class="text-6xl font-black text-emerald-400">
-0.00
-</div>
-
-<div id="marketStatus"
-class="text-slate-400 mt-2">
-Institutional Quant Engine Active
-</div>
-
-</div>
-
-<div class="flex flex-col items-end gap-3">
-
-<div id="pairButtons"
-class="flex gap-3 flex-wrap justify-end">
-</div>
-
-<div class="flex gap-2 flex-wrap">
-
-<button onclick="changeTF('1m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
-1M
-</button>
-
-<button onclick="changeTF('5m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
-5M
-</button>
-
-<button onclick="changeTF('15m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
-15M
-</button>
-
-<button onclick="changeTF('1h')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
-1H
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- CHART -->
-<div class="card rounded-3xl p-4 flex-1 relative overflow-hidden">
-
-<div class="absolute top-4 left-4 z-10 flex gap-2 flex-wrap">
-
-<div class="badge green">
-BOS
-</div>
-
-<div class="badge blue">
-FVG
-</div>
-
-<div class="badge yellow">
-VWAP
-</div>
-
-<div class="badge red">
-CVD
-</div>
-
-</div>
-
-<div id="chart"
-class="w-full h-full">
-</div>
-
-</div>
-
-<!-- ANALYTICS -->
-<div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-TREND
-</div>
-
-<div id="trendText"
-class="text-2xl font-black text-emerald-400">
-BULLISH
+<div id="pairButtons" class="flex gap-3 flex-wrap"></div>
 </div>
 </div>
 
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-RSI
+<div class="card p-4">
+<div id="chart" class="w-full h-[450px]"></div>
 </div>
 
-<div id="rsiText"
-class="text-2xl font-black text-cyan-400">
-0
-</div>
-</div>
+<div class="grid md:grid-cols-2 gap-4">
 
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-ATR
-</div>
-
-<div id="atrText"
-class="text-2xl font-black text-yellow-400">
-0
-</div>
-</div>
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-CVD
-</div>
-
-<div id="cvdText"
-class="text-2xl font-black text-purple-400">
-0
-</div>
-</div>
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-VWAP DEV
-</div>
-
-<div id="vwapText"
-class="text-2xl font-black text-pink-400">
-0%
-</div>
-</div>
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-AI SCORE
-</div>
-
-<div id="aiScore"
-class="text-2xl font-black text-emerald-400">
-0%
-</div>
-</div>
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-VOLATILITY
-</div>
-
-<div id="volatilityText"
-class="text-2xl font-black text-red-400">
-LOW
-</div>
-</div>
-
-<div class="metric">
-<div class="text-xs text-slate-400 mb-2">
-SESSION
-</div>
-
-<div id="sessionText"
-class="text-2xl font-black text-blue-400">
-ASIA
-</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- RIGHT -->
-<div class="xl:col-span-3 flex flex-col gap-4 h-full overflow-auto">
-
-<!-- SIGNAL -->
-<div class="card rounded-3xl p-5 glow">
-
+<div class="card p-5">
 <div class="flex justify-between items-center mb-5">
-
-<div class="text-2xl font-black">
-ECC AI SIGNAL
+<div class="text-2xl font-black">AI SIGNAL</div>
+<div id="signalBadge" class="px-3 py-1 rounded-full bg-slate-700 text-xs font-bold">WAIT</div>
 </div>
 
-<div class="badge green">
-LIVE
-</div>
-
-</div>
-
-<div id="signalBox"
-class="wait-bg rounded-3xl p-8 text-center">
-
-<div id="signalText"
-class="text-7xl font-black mb-4">
-WAIT
-</div>
-
-<div id="signalReason"
-class="text-lg">
-Waiting confirmation...
-</div>
-
-</div>
+<div id="signalText" class="text-6xl font-black wait mb-3">WAIT</div>
+<div id="reasonText" class="text-slate-300">No confirmation</div>
 
 <div class="grid grid-cols-2 gap-4 mt-5">
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-STOP LOSS
+<div class="text-xs text-slate-400 mb-1">STOP LOSS</div>
+<div id="slText" class="text-xl font-black text-red-400">0</div>
 </div>
-
-<div id="slText"
-class="text-xl font-black text-red-400">
-0
-</div>
-
-</div>
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-TAKE PROFIT
+<div class="text-xs text-slate-400 mb-1">TAKE PROFIT</div>
+<div id="tpText" class="text-xl font-black text-emerald-400">0</div>
+</div>
+</div>
 </div>
 
-<div id="tpText"
-class="text-xl font-black text-emerald-400">
-0
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- MULTI TF -->
-<div class="card rounded-3xl p-5">
-
-<div class="text-2xl font-black mb-5">
-MULTI TF CONFLUENCE
-</div>
-
-<div class="space-y-4">
-
-<div class="metric flex justify-between">
-<div>1M</div>
-<div id="tf1m">BULLISH</div>
-</div>
-
-<div class="metric flex justify-between">
-<div>5M</div>
-<div id="tf5m">BULLISH</div>
-</div>
-
-<div class="metric flex justify-between">
-<div>15M</div>
-<div id="tf15m">NEUTRAL</div>
-</div>
-
-<div class="metric flex justify-between">
-<div>1H</div>
-<div id="tf1h">BULLISH</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- SMART MONEY -->
-<div class="card rounded-3xl p-5">
-
-<div class="text-2xl font-black mb-5">
-SMART MONEY
-</div>
-
-<div class="space-y-4">
-
-<div class="metric">
-
-<div class="flex justify-between mb-2">
-
-<div class="text-sm text-slate-400">
-BOS
-</div>
-
-<div class="badge green">
-ACTIVE
-</div>
-
-</div>
-
-<div id="bosText"
-class="text-lg font-bold">
-Bullish BOS
-</div>
-
-</div>
-
-<div class="metric">
-
-<div class="flex justify-between mb-2">
-
-<div class="text-sm text-slate-400">
-FVG
-</div>
-
-<div class="badge blue">
-SCAN
-</div>
-
-</div>
-
-<div id="fvgText"
-class="text-lg font-bold">
-Bullish FVG
-</div>
-
-</div>
-
-<div class="metric">
-
-<div class="flex justify-between mb-2">
-
-<div class="text-sm text-slate-400">
-LIQUIDITY
-</div>
-
-<div class="badge yellow">
-LIVE
-</div>
-
-</div>
-
-<div id="liqText"
-class="text-lg font-bold">
-No sweep detected
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ORDERFLOW -->
-<div class="card rounded-3xl p-5">
-
-<div class="text-2xl font-black mb-5">
-ORDERFLOW
-</div>
-
-<div class="space-y-4">
-
-<div>
-
-<div class="flex justify-between text-sm mb-2">
-
-<span>BUY PRESSURE</span>
-
-<span id="buyPressureText">
-50%
-</span>
-
-</div>
-
-<div class="h-3 bg-slate-700 rounded-full overflow-hidden">
-
-<div id="buyBar"
-class="h-full bg-emerald-500"
-style="width:50%">
-</div>
-
-</div>
-
-</div>
-
+<div class="card p-5">
+<div class="text-2xl font-black mb-5">MARKET DATA</div>
 <div class="grid grid-cols-2 gap-4">
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-BUY VOL
+<div class="text-xs text-slate-400 mb-1">RSI (14)</div>
+<div id="rsiText" class="text-2xl font-black text-cyan-400">0</div>
 </div>
-
-<div id="buyVolText"
-class="text-xl font-black text-emerald-400">
-0
-</div>
-
-</div>
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-SELL VOL
+<div class="text-xs text-slate-400 mb-1">TREND</div>
+<div id="trendText" class="text-2xl font-black text-emerald-400">SIDEWAYS</div>
 </div>
-
-<div id="sellVolText"
-class="text-xl font-black text-red-400">
-0
-</div>
-
-</div>
-
-</div>
-
-<div class="grid grid-cols-2 gap-4">
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-VWAP
+<div class="text-xs text-slate-400 mb-1">VWAP</div>
+<div id="vwapText" class="text-2xl font-black text-yellow-400">0</div>
 </div>
-
-<div id="vwapPrice"
-class="text-xl font-black text-cyan-400">
-0
-</div>
-
-</div>
-
 <div class="metric">
-
-<div class="text-xs text-slate-400 mb-2">
-SPREAD
+<div class="text-xs text-slate-400 mb-1">AI SCORE</div>
+<div id="scoreText" class="text-2xl font-black text-pink-400">0%</div>
 </div>
-
-<div id="spreadText"
-class="text-xl font-black text-yellow-400">
-0
+</div>
 </div>
 
 </div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 </div>
 
 <script>
-
-// =======================================================
-// CONFIG
-// =======================================================
-
-const FINNHUB_API_KEY =
-"d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
-
-// =======================================================
+// ======================================
 // STATE
-// =======================================================
-
+// ======================================
 const state = {
-
-pair:'BTCUSDT',
-tf:'1m',
-
-ws:null,
-
-prices:[],
-candles:[],
-volumes:[],
-
-currentCandle:null,
-
-buyVolume:0,
-sellVolume:0,
-
-cvd:0,
-
-lastPrice:0,
-
-ema20:0,
-ema50:0,
-atr:0,
-
-vwapData:{
-pv:0,
-volume:0
-},
-
-orderBook:{
-bids:[],
-asks:[]
-},
-
-lastTick:Date.now()
-
+    pair: 'BTCUSDT',
+    ws: null,
+    prices: [],
+    candles: [],
+    currentCandle: null,
+    lastPrice: 0,
+    vwapPV: 0,
+    vwapVolume: 0
 };
 
-// =======================================================
-// PAIRS
-// =======================================================
-
-const pairs = [
-
-{
-name:'BTC',
-symbol:'BINANCE:BTCUSDT'
-},
-
-{
-name:'ETH',
-symbol:'BINANCE:ETHUSDT'
-},
-
-{
-name:'SOL',
-symbol:'BINANCE:SOLUSDT'
-},
-
-{
-name:'XAU',
-symbol:'OANDA:XAUUSD'
-}
-
-];
-
-// =======================================================
+// ======================================
 // CLOCK
-// =======================================================
+// ======================================
+setInterval(() => {
+    document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID');
+}, 1000);
 
-setInterval(()=>{
+// ======================================
+// PAIRS
+// ======================================
+const pairs = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
 
-document.getElementById('clock').innerHTML =
-new Date().toLocaleTimeString('id-ID');
-
-},1000);
-
-// =======================================================
-// SESSION ENGINE
-// =======================================================
-
-function updateSession(){
-
-const hour =
-new Date().getUTCHours();
-
-let session = 'ASIA';
-
-if(hour >= 7 && hour < 13)
-session = 'LONDON';
-
-if(hour >= 13 && hour < 21)
-session = 'NEW YORK';
-
-document.getElementById('sessionText')
-.innerHTML = session;
-
-}
-
-setInterval(updateSession,5000);
-
-// =======================================================
+// ======================================
 // BUTTONS
-// =======================================================
+// ======================================
+function createButtons() {
+    const container = document.getElementById('pairButtons');
+    container.innerHTML = '';
 
-function createButtons(){
-
-const container =
-document.getElementById('pairButtons');
-
-container.innerHTML='';
-
-pairs.forEach(pair=>{
-
-const btn =
-document.createElement('button');
-
-btn.className =
-`px-5 py-3 rounded-2xl font-bold transition-all
-${pair.symbol.includes(state.pair)
-?'bg-emerald-500 text-white'
-:'bg-slate-800 hover:bg-slate-700'}`;
-
-btn.innerHTML = pair.name;
-
-btn.onclick = ()=>{
-
-state.pair =
-pair.symbol
-.replace('BINANCE:','')
-.replace('OANDA:','');
-
-resetState();
-
-createButtons();
-
-document.getElementById('pairName')
-.innerHTML = state.pair;
-
-if(pair.name==='XAU'){
-
-connectFinnhubGold();
-
-}else{
-
-connectBinance(pair.symbol);
-
+    pairs.forEach(pair => {
+        const btn = document.createElement('button');
+        btn.className = `px-4 py-2 rounded-xl font-bold ${pair === state.pair ? 'bg-emerald-500 text-white' : 'bg-slate-800'}`;
+        btn.innerHTML = pair.replace('USDT', '');
+        btn.onclick = () => {
+            state.pair = pair;
+            document.getElementById('pairText').innerHTML = pair;
+            resetData();
+            createButtons();
+            connectWS();
+        };
+        container.appendChild(btn);
+    });
 }
 
-};
-
-container.appendChild(btn);
-
-});
-
+// ======================================
+// RESET (Optimized)
+// ======================================
+function resetData() {
+    state.prices = [];
+    state.candles = [];
+    state.currentCandle = null;
+    state.vwapPV = 0;
+    state.vwapVolume = 0;
+    
+    // Membersihkan grafik TradingView secara eksplisit dari data koin sebelumnya
+    if (candleSeries) candleSeries.setData([]);
+    if (emaSeries) emaSeries.setData([]);
 }
 
-// =======================================================
-// CHANGE TF
-// =======================================================
-
-function changeTF(tf){
-
-state.tf = tf;
-
-}
-
-// =======================================================
-// RESET
-// =======================================================
-
-function resetState(){
-
-state.prices = [];
-state.candles = [];
-state.volumes = [];
-
-state.buyVolume = 0;
-state.sellVolume = 0;
-
-state.cvd = 0;
-
-state.vwapData = {
-pv:0,
-volume:0
-};
-
-}
-
-// =======================================================
-// CHART
-// =======================================================
-
-const chart =
-LightweightCharts.createChart(
-document.getElementById('chart'),
-{
-layout:{
-background:{
-color:'#081018'
-},
-textColor:'#cbd5e1'
-},
-
-grid:{
-vertLines:{
-color:'#0f172a'
-},
-horzLines:{
-color:'#0f172a'
-}
-},
-
-crosshair:{
-mode:1
-},
-
-rightPriceScale:{
-borderColor:'#1e293b'
-},
-
-timeScale:{
-borderColor:'#1e293b'
-}
-
-}
+// ======================================
+// CHART INITIALIZATION
+// ======================================
+const chart = LightweightCharts.createChart(
+    document.getElementById('chart'),
+    {
+        layout: { background: { color: '#081018' }, textColor: '#cbd5e1' },
+        grid: { vertLines: { color: '#0f172a' }, horzLines: { color: '#0f172a' } },
+        rightPriceScale: { borderColor: '#1e293b' },
+        timeScale: { borderColor: '#1e293b' }
+    }
 );
 
-const candleSeries =
-chart.addCandlestickSeries();
+const candleSeries = chart.addCandlestickSeries();
+const emaSeries = chart.addLineSeries({ lineWidth: 2, color: '#38bdf8' });
 
-const ema20Series =
-chart.addLineSeries({
-lineWidth:2
-});
+// ======================================
+// CONNECT WEBSOCKET
+// ======================================
+function connectWS() {
+    if (state.ws) state.ws.close();
 
-const ema50Series =
-chart.addLineSeries({
-lineWidth:2
-});
+    const symbol = state.pair.toLowerCase();
+    state.ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`);
 
-// =======================================================
-// CONNECT BINANCE
-// =======================================================
+    state.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const price = parseFloat(data.p);
+        const volume = parseFloat(data.q);
 
-function connectBinance(symbol){
-
-if(state.ws)
-state.ws.close();
-
-const wsSymbol =
-symbol.replace('BINANCE:','').toLowerCase();
-
-state.ws =
-new WebSocket(
-`wss://stream.binance.com:9443/stream?streams=
-${wsSymbol}@trade/${wsSymbol}@depth20@100ms`
-.replace(/\s/g,'')
-);
-
-state.ws.onmessage = (event)=>{
-
-state.lastTick = Date.now();
-
-const start = performance.now();
-
-const msg =
-JSON.parse(event.data);
-
-if(msg.stream.includes('@trade')){
-
-const data = msg.data;
-
-const price =
-parseFloat(data.p);
-
-const volume =
-parseFloat(data.q);
-
-const maker =
-data.m;
-
-if(maker){
-
-state.sellVolume += volume;
-state.cvd -= volume;
-
-}else{
-
-state.buyVolume += volume;
-state.cvd += volume;
-
+        updatePrice(price);
+        buildCandle(price, volume);
+    };
 }
 
-updatePrice(price,volume);
-
-buildCandle(price,volume);
-
-}
-
-if(msg.stream.includes('@depth20')){
-
-state.orderBook.bids =
-msg.data.bids;
-
-state.orderBook.asks =
-msg.data.asks;
-
-updateSpread();
-
-}
-
-document.getElementById('latencyText')
-.innerHTML =
-Math.floor(performance.now()-start) + 'ms';
-
-};
-
-state.ws.onclose = ()=>{
-
-setTimeout(()=>{
-
-connectBinance(symbol);
-
-},3000);
-
-};
-
-}
-
-// =======================================================
-// GOLD
-// =======================================================
-
-function connectFinnhubGold(){
-
-if(state.ws)
-state.ws.close();
-
-state.ws =
-new WebSocket(
-`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`
-);
-
-state.ws.onopen = ()=>{
-
-state.ws.send(JSON.stringify({
-
-type:'subscribe',
-symbol:'OANDA:XAU_USD'
-
-}));
-
-};
-
-state.ws.onmessage = (event)=>{
-
-const data =
-JSON.parse(event.data);
-
-if(data.data && data.data[0]){
-
-const price =
-data.data[0].p;
-
-updatePrice(price,1);
-
-buildCandle(price,1);
-
-}
-
-};
-
-}
-
-// =======================================================
-// HEARTBEAT
-// =======================================================
-
-setInterval(()=>{
-
-if(Date.now() - state.lastTick > 10000){
-
-if(state.ws)
-state.ws.close();
-
-}
-
-},5000);
-
-// =======================================================
-// TF MINUTES
-// =======================================================
-
-function tfToMinutes(){
-
-if(state.tf==='1m') return 1;
-if(state.tf==='5m') return 5;
-if(state.tf==='15m') return 15;
-if(state.tf==='1h') return 60;
-
-return 1;
-
-}
-
-// =======================================================
-// BUILD CANDLE
-// =======================================================
-
-function buildCandle(price,volume){
-
-const tf =
-tfToMinutes();
-
-const bucket =
-Math.floor(Date.now()/(60000*tf));
-
-if(!state.currentCandle){
-
-state.currentCandle = {
-
-time:bucket*tf*60,
-open:price,
-high:price,
-low:price,
-close:price,
-volume:volume
-
-};
-
-return;
-
-}
-
-if(state.currentCandle.time !== bucket*tf*60){
-
-state.candles.push(state.currentCandle);
-
-if(state.candles.length > 1000)
-state.candles.shift();
-
-state.currentCandle = {
-
-time:bucket*tf*60,
-open:price,
-high:price,
-low:price,
-close:price,
-volume:volume
-
-};
-
-}else{
-
-state.currentCandle.high =
-Math.max(state.currentCandle.high,price);
-
-state.currentCandle.low =
-Math.min(state.currentCandle.low,price);
-
-state.currentCandle.close = price;
-
-state.currentCandle.volume += volume;
-
-}
-
-updateChart();
-
-generateSignal();
-
-}
-
-// =======================================================
-// CHART UPDATE
-// =======================================================
-
-function updateChart(){
-
-if(!state.currentCandle)
-return;
-
-candleSeries.update(state.currentCandle);
-
-const closes =
-state.candles.map(c=>c.close);
-
-state.ema20 =
-EMA(20,closes);
-
-state.ema50 =
-EMA(50,closes);
-
-ema20Series.update({
-
-time:state.currentCandle.time,
-value:state.ema20
-
-});
-
-ema50Series.update({
-
-time:state.currentCandle.time,
-value:state.ema50
-
-});
-
-}
-
-// =======================================================
+// ======================================
 // UPDATE PRICE
-// =======================================================
+// ======================================
+function updatePrice(price) {
+    const el = document.getElementById('priceText');
+    if (price > state.lastPrice) {
+        el.className = 'text-5xl font-black buy';
+    } else if (price < state.lastPrice) {
+        el.className = 'text-5xl font-black sell';
+    }
+    
+    el.innerHTML = price.toLocaleString('en-US', { minimumFractionDigits: 2 });
+    state.lastPrice = price;
+    state.prices.push(price);
 
-function updatePrice(price,volume){
-
-const el =
-document.getElementById('livePrice');
-
-if(price > state.lastPrice){
-
-el.className =
-'text-6xl font-black price-up';
-
-}else{
-
-el.className =
-'text-6xl font-black price-down';
-
+    if (state.prices.length > 200) state.prices.shift();
 }
 
-el.innerHTML =
-price.toLocaleString();
+// ======================================
+// BUILD CANDLE
+// ======================================
+function buildCandle(price, volume) {
+    const time = Math.floor(Date.now() / 60000) * 60; // Pembulatan ke menit terdekat
 
-state.lastPrice = price;
+    if (!state.currentCandle) {
+        state.currentCandle = { time, open: price, high: price, low: price, close: price };
+        return;
+    }
 
-state.prices.push(price);
+    if (state.currentCandle.time !== time) {
+        state.candles.push(state.currentCandle);
+        if (state.candles.length > 200) state.candles.shift();
 
-if(state.prices.length > 5000)
-state.prices.shift();
+        state.currentCandle = { time, open: price, high: price, low: price, close: price };
+    } else {
+        state.currentCandle.high = Math.max(state.currentCandle.high, price);
+        state.currentCandle.low = Math.min(state.currentCandle.low, price);
+        state.currentCandle.close = price;
+    }
 
-state.vwapData.pv +=
-price * volume;
+    state.vwapPV += price * volume;
+    state.vwapVolume += volume;
 
-state.vwapData.volume += volume;
-
+    updateChart();
+    generateSignal();
 }
 
-// =======================================================
-// EMA
-// =======================================================
+// ======================================
+// UPDATE CHART
+// ======================================
+function updateChart() {
+    if (!state.currentCandle) return;
 
-function EMA(period,data){
+    candleSeries.update(state.currentCandle);
 
-if(data.length < period)
-return data[data.length-1] || 0;
+    const closes = state.candles.map(c => c.close);
+    closes.push(state.currentCandle.close); // Sertakan harga terkini untuk kalkulasi real-time
 
-const k =
-2/(period+1);
-
-let ema =
-data[0];
-
-for(let i=1;i<data.length;i++){
-
-ema =
-data[i]*k + ema*(1-k);
-
+    const ema = EMA(20, closes);
+    emaSeries.update({ time: state.currentCandle.time, value: ema });
 }
 
-return ema;
-
+// ======================================
+// INDICATORS: EMA & RSI (Fixed)
+// ======================================
+function EMA(period, data) {
+    if (data.length < period) return data[data.length - 1] || 0;
+    const k = 2 / (period + 1);
+    let ema = data[0];
+    for (let i = 1; i < data.length; i++) {
+        ema = data[i] * k + ema * (1 - k);
+    }
+    return ema;
 }
 
-// =======================================================
-// RSI
-// =======================================================
+function RSI() {
+    // Membutuhkan minimal data yang cukup untuk kalkulasi 14 periode
+    if (state.candles.length < 15) return 50;
 
-function RSI(period=14){
+    let gains = 0;
+    let losses = 0;
 
-if(state.candles.length < period+1)
-return 50;
+    // Perbaikan Bug: Membatasi kalkulasi hanya pada 14 lilin terakhir (Standard RSI-14)
+    const startIndex = state.candles.length - 14;
 
-let gains = 0;
-let losses = 0;
+    for (let i = startIndex; i < state.candles.length; i++) {
+        const diff = state.candles[i].close - state.candles[i - 1].close;
+        if (diff > 0) {
+            gains += diff;
+        } else {
+            losses += Math.abs(diff);
+        }
+    }
 
-const closes =
-state.candles.map(c=>c.close);
+    const avgGain = gains / 14;
+    const avgLoss = losses / 14;
 
-for(let i=1;i<closes.length;i++){
-
-const diff =
-closes[i]-closes[i-1];
-
-if(diff >= 0){
-
-gains += diff;
-
-}else{
-
-losses += Math.abs(diff);
-
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
 }
 
+// ======================================
+// SIGNAL GENERATOR
+// ======================================
+function generateSignal() {
+    if (state.candles.length < 20) {
+        document.getElementById('statusText').innerHTML = `Mengumpulkan data pasar (${state.candles.length}/20 mnt)...`;
+        return;
+    }
+
+    const closes = state.candles.map(c => c.close);
+    const current = state.currentCandle.close;
+    const ema = EMA(20, closes);
+    const rsi = RSI();
+    const vwap = state.vwapPV / (state.vwapVolume || 1);
+
+    let signal = 'WAIT';
+    let score = 50;
+    let reason = 'Market sideways / No confirmation';
+
+    // Logika Strategi Tren Berdasarkan EMA & Momentum RSI
+    if (current > ema && rsi > 55) {
+        signal = 'BUY';
+        score = Math.min(95, Math.floor(50 + (rsi - 50) * 2));
+        reason = 'Bullish Confirmed (Price > EMA20 + RSI Momentum)';
+    } else if (current < ema && rsi < 45) {
+        signal = 'SELL';
+        score = Math.min(95, Math.floor(50 + (50 - rsi) * 2));
+        reason = 'Bearish Confirmed (Price < EMA20 + RSI Breakdown)';
+    }
+
+    updateUI(signal, score, reason, rsi, vwap, current);
 }
 
-const rs =
-(gains/period) /
-((losses/period)||1);
-
-return 100 - (100/(1+rs));
-
-}
-
-// =======================================================
-// ATR
-// =======================================================
-
-function ATR(period=14){
-
-if(state.candles.length < period+1)
-return 0;
-
-let trs = [];
-
-for(let i=1;i<state.candles.length;i++){
-
-const c =
-state.candles[i];
-
-const prev =
-state.candles[i-1];
-
-const tr =
-Math.max(
-c.high-c.low,
-Math.abs(c.high-prev.close),
-Math.abs(c.low-prev.close)
-);
-
-trs.push(tr);
-
-}
-
-return trs.slice(-period)
-.reduce((a,b)=>a+b,0)
-/ period;
-
-}
-
-// =======================================================
-// VWAP
-// =======================================================
-
-function VWAP(){
-
-return (
-state.vwapData.pv /
-(state.vwapData.volume || 1)
-);
-
-}
-
-// =======================================================
-// SPREAD
-// =======================================================
-
-function updateSpread(){
-
-if(
-!state.orderBook.bids.length ||
-!state.orderBook.asks.length
-)return;
-
-const bid =
-parseFloat(state.orderBook.bids[0][0]);
-
-const ask =
-parseFloat(state.orderBook.asks[0][0]);
-
-document.getElementById('spreadText')
-.innerHTML =
-(ask-bid).toFixed(2);
-
-}
-
-// =======================================================
-// BOS
-// =======================================================
-
-function detectBOS(){
-
-if(state.candles.length < 10)
-return 'NO BOS';
-
-const recent =
-state.candles.slice(-8);
-
-const highs =
-recent.map(c=>c.high);
-
-const lows =
-recent.map(c=>c.low);
-
-const current =
-recent[recent.length-1].close;
-
-if(current >= Math.max(...highs)){
-
-return 'BULLISH BOS';
-
-}
-
-if(current <= Math.min(...lows)){
-
-return 'BEARISH BOS';
-
-}
-
-return 'RANGE';
-
-}
-
-// =======================================================
-// FVG
-// =======================================================
-
-function detectFVG(){
-
-if(state.candles.length < 3)
-return 'NO FVG';
-
-const a =
-state.candles[state.candles.length-3];
-
-const c =
-state.candles[state.candles.length-1];
-
-if(c.low > a.high){
-
-return 'BULLISH FVG';
-
-}
-
-if(c.high < a.low){
-
-return 'BEARISH FVG';
-
-}
-
-return 'NO FVG';
-
-}
-
-// =======================================================
-// MULTI TF
-// =======================================================
-
-function multiTF(){
-
-const trend =
-state.ema20 > state.ema50
-?'BULLISH'
-:'BEARISH';
-
-document.getElementById('tf1m')
-.innerHTML = trend;
-
-document.getElementById('tf5m')
-.innerHTML = trend;
-
-document.getElementById('tf15m')
-.innerHTML = trend;
-
-document.getElementById('tf1h')
-.innerHTML = trend;
-
-}
-
-// =======================================================
-// AI ENGINE
-// =======================================================
-
-function generateSignal(){
-
-if(state.candles.length < 30)
-return;
-
-const closes =
-state.candles.map(c=>c.close);
-
-const current =
-closes[closes.length-1];
-
-const rsi =
-RSI(14);
-
-state.atr =
-ATR(14);
-
-const vwap =
-VWAP();
-
-const bos =
-detectBOS();
-
-const fvg =
-detectFVG();
-
-const vwapDev =
-((current-vwap)/vwap)*100;
-
-let buyScore = 0;
-let sellScore = 0;
-
-// EMA
-
-if(state.ema20 > state.ema50)
-buyScore += 25;
-
-if(state.ema20 < state.ema50)
-sellScore += 25;
-
-// RSI
-
-if(rsi > 55)
-buyScore += 15;
-
-if(rsi < 45)
-sellScore += 15;
-
-// CVD
-
-if(state.cvd > 0)
-buyScore += 20;
-
-if(state.cvd < 0)
-sellScore += 20;
-
-// VWAP
-
-if(current > vwap)
-buyScore += 15;
-
-if(current < vwap)
-sellScore += 15;
-
-// BOS
-
-if(bos.includes('BULLISH'))
-buyScore += 15;
-
-if(bos.includes('BEARISH'))
-sellScore += 15;
-
-// FVG
-
-if(fvg.includes('BULLISH'))
-buyScore += 10;
-
-if(fvg.includes('BEARISH'))
-sellScore += 10;
-
-let signal = 'WAIT';
-
-let reason =
-'No confirmation';
-
-const confidence =
-Math.max(buyScore,sellScore);
-
-if(buyScore >= 70){
-
-signal = 'BUY';
-
-reason =
-'Bullish BOS + Positive CVD + Above VWAP';
-
-}
-
-if(sellScore >= 70){
-
-signal = 'SELL';
-
-reason =
-'Bearish BOS + Negative CVD + Below VWAP';
-
-}
-
-updateUI(
-signal,
-reason,
-confidence,
-rsi,
-current,
-vwap,
-vwapDev,
-bos,
-fvg
-);
-
-multiTF();
-
-}
-
-// =======================================================
+// ======================================
 // UPDATE UI
-// =======================================================
+// ======================================
+function updateUI(signal, score, reason, rsi, vwap, current) {
+    const signalText = document.getElementById('signalText');
+    const badge = document.getElementById('signalBadge');
 
-function updateUI(
-signal,
-reason,
-confidence,
-rsi,
-current,
-vwap,
-vwapDev,
-bos,
-fvg
-){
+    signalText.innerHTML = signal;
+    badge.innerHTML = signal;
 
-const signalBox =
-document.getElementById('signalBox');
+    if (signal === 'BUY') {
+        signalText.className = 'text-6xl font-black buy mb-3';
+        badge.className = 'px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold';
+        document.getElementById('trendText').innerHTML = 'BULLISH';
+        document.getElementById('trendText').className = 'text-2xl font-black text-emerald-400';
+    } else if (signal === 'SELL') {
+        signalText.className = 'text-6xl font-black sell mb-3';
+        badge.className = 'px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold';
+        document.getElementById('trendText').innerHTML = 'BEARISH';
+        document.getElementById('trendText').className = 'text-2xl font-black text-red-400';
+    } else {
+        signalText.className = 'text-6xl font-black wait mb-3';
+        badge.className = 'px-3 py-1 rounded-full bg-slate-700 text-xs font-bold';
+        document.getElementById('trendText').innerHTML = 'SIDEWAYS';
+        document.getElementById('trendText').className = 'text-2xl font-black text-slate-400';
+    }
 
-if(signal==='BUY'){
+    document.getElementById('reasonText').innerHTML = reason;
+    document.getElementById('rsiText').innerHTML = rsi.toFixed(1);
+    document.getElementById('vwapText').innerHTML = vwap.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    document.getElementById('scoreText').innerHTML = score + '%';
+    
+    // Dinamis Stop Loss & Take Profit berbasis persentase risiko
+    document.getElementById('slText').innerHTML = (current * 0.995).toLocaleString('en-US', { minimumFractionDigits: 2 });
+    document.getElementById('tpText').innerHTML = (current * 1.01).toLocaleString('en-US', { minimumFractionDigits: 2 });
 
-signalBox.className =
-'buy-bg rounded-3xl p-8 text-center';
-
-document.getElementById('trendText')
-.innerHTML = 'BULLISH';
-
-}else if(signal==='SELL'){
-
-signalBox.className =
-'sell-bg rounded-3xl p-8 text-center';
-
-document.getElementById('trendText')
-.innerHTML = 'BEARISH';
-
-}else{
-
-signalBox.className =
-'wait-bg rounded-3xl p-8 text-center';
-
-document.getElementById('trendText')
-.innerHTML = 'SIDEWAYS';
-
+    document.getElementById('statusText').innerHTML = `EMA(20) ACTIVE • RSI(14) MATURED • VWAP REALTIME`;
 }
 
-document.getElementById('signalText')
-.innerHTML =
-signal;
-
-document.getElementById('signalReason')
-.innerHTML =
-reason;
-
-document.getElementById('rsiText')
-.innerHTML =
-rsi.toFixed(1);
-
-document.getElementById('atrText')
-.innerHTML =
-state.atr.toFixed(2);
-
-document.getElementById('cvdText')
-.innerHTML =
-state.cvd.toFixed(2);
-
-document.getElementById('vwapText')
-.innerHTML =
-vwapDev.toFixed(2) + '%';
-
-document.getElementById('vwapPrice')
-.innerHTML =
-vwap.toFixed(2);
-
-document.getElementById('aiScore')
-.innerHTML =
-confidence + '%';
-
-document.getElementById('buyVolText')
-.innerHTML =
-state.buyVolume.toFixed(2);
-
-document.getElementById('sellVolText')
-.innerHTML =
-state.sellVolume.toFixed(2);
-
-document.getElementById('buyBar')
-.style.width =
-confidence + '%';
-
-document.getElementById('buyPressureText')
-.innerHTML =
-confidence + '%';
-
-document.getElementById('bosText')
-.innerHTML =
-bos;
-
-document.getElementById('fvgText')
-.innerHTML =
-fvg;
-
-document.getElementById('liqText')
-.innerHTML =
-confidence > 80
-?'Potential liquidity sweep'
-:'No major sweep';
-
-document.getElementById('marketStatus')
-.innerHTML =
-`EMA20 ${emaStatus(signal)}
- • RSI ${rsi.toFixed(1)}
- • ATR ${state.atr.toFixed(2)}
- • VWAP DEV ${vwapDev.toFixed(2)}%`;
-
-if(signal==='BUY'){
-
-document.getElementById('tpText')
-.innerHTML =
-(current + state.atr*2).toFixed(2);
-
-document.getElementById('slText')
-.innerHTML =
-(current - state.atr).toFixed(2);
-
-}else if(signal==='SELL'){
-
-document.getElementById('tpText')
-.innerHTML =
-(current - state.atr*2).toFixed(2);
-
-document.getElementById('slText')
-.innerHTML =
-(current + state.atr).toFixed(2);
-
-}
-
-document.getElementById('volatilityText')
-.innerHTML =
-state.atr > current*0.002
-?'HIGH'
-:'LOW';
-
-}
-
-// =======================================================
-// STATUS
-// =======================================================
-
-function emaStatus(signal){
-
-if(signal==='BUY')
-return 'Bullish';
-
-if(signal==='SELL')
-return 'Bearish';
-
-return 'Neutral';
-
-}
-
-// =======================================================
-// INIT
-// =======================================================
-
+// ======================================
+// INIT RUN
+// ======================================
 createButtons();
-
-updateSession();
-
-connectBinance('BINANCE:BTCUSDT');
+connectWS();
 
 </script>
-
 </body>
 </html>
