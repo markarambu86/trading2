@@ -20,6 +20,7 @@ body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overfl
 .price-down { color:#ef4444; animation:down .4s; }
 @keyframes up { from{transform:scale(1.12)} to{transform:scale(1)} }
 @keyframes down { from{transform:scale(0.88)} to{transform:scale(1)} }
+.loading { opacity: 0.6; pointer-events: none; }
 </style>
 </head>
 
@@ -31,12 +32,11 @@ body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overfl
         <div class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">ECC</div>
         <div>
             <div class="text-2xl font-black">INSTITUTIONAL AI TERMINAL</div>
-            <div class="text-xs text-slate-400">BINANCE FUTURES REAL API • FINNHUB</div>
+            <div class="text-xs text-slate-400">BINANCE FUTURES REAL • AI POWERED</div>
         </div>
     </div>
     <div class="flex items-center gap-6 text-sm">
-        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>FUTURES WS</div>
-        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>FINNHUB</div>
+        <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>LIVE</div>
         <div id="clock" class="font-mono text-lg"></div>
     </div>
 </div>
@@ -55,7 +55,9 @@ body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overfl
             </div>
             <div id="pairButtons" class="flex gap-2 flex-wrap"></div>
         </div>
-        <div id="tvContainer" class="rounded-3xl overflow-hidden h-[620px]"></div>
+        <div id="tvContainer" class="rounded-3xl overflow-hidden h-[620px] bg-black">
+            <!-- TradingView will be loaded here -->
+        </div>
     </div>
 
     <div class="grid md:grid-cols-4 gap-4">
@@ -75,7 +77,7 @@ body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overfl
         </div>
         <div id="signalBox" class="wait-bg rounded-3xl p-8 text-center transition-all duration-500">
             <div id="signalText" class="text-7xl font-black mb-4">WAIT</div>
-            <div id="signalReason" class="text-lg text-slate-300">Menunggu konfirmasi...</div>
+            <div id="signalReason" class="text-lg text-slate-300">Menunggu konfirmasi pasar...</div>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-6">
             <div class="bg-slate-800/70 rounded-2xl p-4">
@@ -92,12 +94,12 @@ body { font-family:'Inter',sans-serif; background:#050816; color:#e2e8f0; overfl
         </button>
     </div>
 
-    <!-- FUNDING RATE REAL -->
+    <!-- FUNDING RATE -->
     <div class="card rounded-3xl p-6">
         <h2 class="text-xl font-bold mb-4">FUNDING RATE (REAL)</h2>
         <div class="text-center">
             <div id="fundingRate" class="text-4xl font-black text-emerald-400">0.0000%</div>
-            <div id="fundingText" class="text-sm text-slate-400 mt-1">Loading...</div>
+            <div id="fundingText" class="text-sm text-slate-400 mt-1">Loading real data...</div>
             <div id="nextFunding" class="text-xs text-slate-500 mt-2"></div>
         </div>
     </div>
@@ -115,72 +117,58 @@ const FINNHUB_API_KEY = "d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
 
 // ====================== STATE ======================
 let state = {
-    pair: 'BTCUSDT',
+    currentPair: 'BTCUSDT',
     tvSymbol: 'BINANCE:BTCUSDT',
-    dataSource: 'binance_futures',
     ws: null,
     lastPrice: 0,
     prices: [],
     signals: [],
-    lastSignalTime: 0,
-    lastFundingUpdate: 0
+    lastSignalTime: 0
 };
 
 const pairs = [
-    { name: 'BTC',  symbol: 'BTCUSDT',  tvSymbol: 'BINANCE:BTCUSDT',  type: 'PERPETUAL', source: 'binance_futures' },
-    { name: 'ETH',  symbol: 'ETHUSDT',  tvSymbol: 'BINANCE:ETHUSDT',  type: 'PERPETUAL', source: 'binance_futures' },
-    { name: 'XAU',  symbol: 'XAU_USD',  tvSymbol: 'OANDA:XAU_USD',    type: 'COMMODITY', source: 'finnhub' },
-    { name: 'EURUSD', symbol: 'EUR_USD', tvSymbol: 'OANDA:EUR_USD',   type: 'FOREX',     source: 'finnhub' },
-    { name: 'GBPUSD', symbol: 'GBP_USD', tvSymbol: 'OANDA:GBP_USD',   type: 'FOREX',     source: 'finnhub' }
+    { name: 'BTC', symbol: 'BTCUSDT', tv: 'BINANCE:BTCUSDT', type: 'PERPETUAL' },
+    { name: 'ETH', symbol: 'ETHUSDT', tv: 'BINANCE:ETHUSDT', type: 'PERPETUAL' },
+    { name: 'XAU', symbol: 'XAU_USD', tv: 'OANDA:XAU_USD', type: 'COMMODITY' }
 ];
 
 // ====================== FETCH REAL FUNDING RATE ======================
-async function fetchRealFundingRate(symbol) {
+async function fetchFundingRate(symbol) {
     try {
-        const response = await fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}`);
-        const data = await response.json();
-        
-        if (Array.isArray(data) && data.length > 0) {
-            const latest = data[data.length - 1];
-            const rate = parseFloat(latest.fundingRate) * 100;
-            
-            document.getElementById('fundingRate').textContent = rate.toFixed(4) + "%";
+        const res = await fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`);
+        const data = await res.json();
+        if (data && data[0]) {
+            const rate = (parseFloat(data[0].fundingRate) * 100).toFixed(4);
+            document.getElementById('fundingRate').textContent = rate + "%";
             document.getElementById('fundingRate').className = rate >= 0 
                 ? "text-4xl font-black text-emerald-400" 
                 : "text-4xl font-black text-red-400";
-            
-            document.getElementById('fundingText').textContent = rate >= 0 
-                ? "Positive • Longs Pay Shorts" 
-                : "Negative • Shorts Pay Longs";
-            
-            document.getElementById('nextFunding').textContent = `Next Funding: ${new Date(latest.nextFundingTime).toLocaleTimeString('id-ID')}`;
+            document.getElementById('fundingText').textContent = rate >= 0 ? "Positive • Longs Pay Shorts" : "Negative • Shorts Pay Longs";
         }
-    } catch (error) {
-        console.error("Funding Rate API Error:", error);
-        document.getElementById('fundingText').textContent = "Gagal mengambil data funding";
+    } catch (e) {
+        document.getElementById('fundingText').textContent = "Error loading funding rate";
     }
 }
 
-// ====================== UTILITIES ======================
-function updateClock() {
-    setInterval(() => document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID'), 1000);
+// ====================== WEBSOCKET ======================
+function connectWebSocket(symbol) {
+    if (state.ws) state.ws.close();
+    
+    const wsUrl = `wss://fstream.binance.com/ws/${symbol.toLowerCase()}@markPrice`;
+    state.ws = new WebSocket(wsUrl);
+
+    state.ws.onopen = () => console.log(`✅ Connected to ${symbol} Futures`);
+    state.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.p) updatePrice(parseFloat(data.p));
+    };
+    state.ws.onerror = () => console.error("WebSocket Error");
+    state.ws.onclose = () => console.log("WebSocket Closed");
 }
 
-function addToHistory(signal, confidence, price) {
-    state.signals.unshift({ time: new Date().toLocaleTimeString('id-ID'), signal, confidence, price });
-    if (state.signals.length > 10) state.signals.pop();
-    document.getElementById('signalHistory').innerHTML = state.signals.map(s => `
-        <div class="flex justify-between p-3 rounded-2xl ${s.signal==='BUY'?'bg-emerald-900/30':'bg-red-900/30'}">
-            <div><span class="font-bold ${s.signal==='BUY'?'text-emerald-400':'text-red-400'}">${s.signal}</span> <span class="text-xs text-slate-400">${s.time}</span></div>
-            <div class="text-right"><div class="text-xs">${s.confidence}%</div><div>${parseFloat(s.price).toLocaleString()}</div></div>
-        </div>
-    `).join('');
-}
-
-// ====================== PRICE & WEBSOCKET ======================
 function updatePrice(price) {
     const el = document.getElementById('livePrice');
-    el.className = (price > state.lastPrice) ? 'text-6xl font-black price-up' : 'text-6xl font-black price-down';
+    el.className = price > state.lastPrice ? 'text-6xl font-black price-up' : 'text-6xl font-black price-down';
     el.textContent = parseFloat(price).toLocaleString('id-ID');
 
     state.lastPrice = price;
@@ -190,76 +178,106 @@ function updatePrice(price) {
     generateSignal();
 }
 
-function connectWebSocket(selectedPair) {
-    if (state.ws) state.ws.close();
-
-    if (selectedPair.source === 'binance_futures') {
-        const wsUrl = `wss://fstream.binance.com/ws/${selectedPair.symbol.toLowerCase()}@markPrice`;
-        state.ws = new WebSocket(wsUrl);
-        state.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.p) updatePrice(parseFloat(data.p));
-        };
-    } else {
-        state.ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
-        state.ws.onopen = () => state.ws.send(JSON.stringify({ type: 'subscribe', symbol: selectedPair.symbol }));
-        state.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.data && data.data[0]) updatePrice(data.data[0].p);
-        };
-    }
+// ====================== AI SIGNAL & UI (tetap sama seperti sebelumnya) ======================
+function calculateEMA(period, prices) {
+    if (prices.length < period) return prices[prices.length-1] || 0;
+    let ema = prices[0];
+    const k = 2 / (period + 1);
+    for (let i = 1; i < prices.length; i++) ema = prices[i] * k + ema * (1 - k);
+    return ema;
 }
 
-// ====================== INIT & BUTTONS ======================
+function calculateRSI(prices, period = 14) {
+    if (prices.length < period + 1) return 50;
+    let gains = 0, losses = 0;
+    for (let i = prices.length - period; i < prices.length; i++) {
+        const diff = prices[i] - prices[i-1];
+        diff >= 0 ? gains += diff : losses += Math.abs(diff);
+    }
+    const rs = gains / (losses || 1);
+    return Math.min(100, Math.max(0, 100 - (100 / (1 + rs))));
+}
+
+function generateSignal() {
+    if (state.prices.length < 50 || Date.now() - state.lastSignalTime < 3000) return;
+    state.lastSignalTime = Date.now();
+
+    const current = state.prices[state.prices.length-1];
+    const ema20 = calculateEMA(20, state.prices);
+    const ema50 = calculateEMA(50, state.prices);
+    const rsi = calculateRSI(state.prices);
+
+    let buyScore = 0, sellScore = 0;
+    if (ema20 > ema50) buyScore += 40;
+    else sellScore += 40;
+    if (rsi > 55 && rsi < 75) buyScore += 30;
+    if (rsi < 45 && rsi > 25) sellScore += 30;
+
+    let signal = 'WAIT', reason = 'Pasar Sideways', confidence = Math.max(buyScore, sellScore);
+
+    if (buyScore >= 70) { signal = 'BUY'; reason = 'Strong Bullish Setup'; }
+    else if (sellScore >= 70) { signal = 'SELL'; reason = 'Bearish Pressure'; }
+
+    updateUI(signal, reason, confidence, rsi, current);
+}
+
+function updateUI(signal, reason, confidence, rsi, current) {
+    const box = document.getElementById('signalBox');
+    if (signal === 'BUY') box.className = 'buy-bg rounded-3xl p-8 text-center';
+    else if (signal === 'SELL') box.className = 'sell-bg rounded-3xl p-8 text-center';
+    else box.className = 'wait-bg rounded-3xl p-8 text-center';
+
+    document.getElementById('signalText').textContent = signal;
+    document.getElementById('signalReason').textContent = reason;
+    document.getElementById('confidenceText').textContent = confidence + '%';
+    document.getElementById('rsiText').textContent = rsi.toFixed(0);
+}
+
+// ====================== UI FUNCTIONS ======================
+function loadTradingView(symbol) {
+    document.getElementById('tvContainer').innerHTML = `
+        <iframe width="100%" height="100%" 
+            src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(symbol)}&interval=5&theme=dark&style=1">
+        </iframe>`;
+}
+
 function createButtons() {
     const container = document.getElementById('pairButtons');
     container.innerHTML = '';
     
     pairs.forEach(pair => {
         const btn = document.createElement('button');
-        btn.className = `px-5 py-2.5 rounded-2xl font-semibold transition-all text-sm ${pair.tvSymbol === state.tvSymbol ? 'bg-emerald-500 text-white' : 'bg-slate-800 hover:bg-slate-700'}`;
+        btn.className = `px-6 py-3 rounded-2xl font-semibold transition-all ${pair.tv === state.tvSymbol ? 'bg-emerald-500 text-white' : 'bg-slate-800 hover:bg-slate-700'}`;
         btn.textContent = pair.name;
         btn.onclick = () => {
-            state.tvSymbol = pair.tvSymbol;
-            state.dataSource = pair.source;
-            document.getElementById('pairType').textContent = pair.type;
+            state.currentPair = pair.symbol;
+            state.tvSymbol = pair.tv;
             
             createButtons();
-            loadTradingView(pair.tvSymbol);
-            connectWebSocket(pair);
-            
-            if (pair.source === 'binance_futures') {
-                fetchRealFundingRate(pair.symbol);
-            } else {
-                document.getElementById('fundingRate').textContent = "N/A";
-                document.getElementById('fundingText').textContent = "Tidak tersedia untuk pair ini";
-            }
+            loadTradingView(pair.tv);
+            connectWebSocket(pair.symbol);
+            fetchFundingRate(pair.symbol);
         };
         container.appendChild(btn);
     });
 }
 
-function loadTradingView(symbol) {
-    document.getElementById('pairName').textContent = symbol.replace('BINANCE:', '').replace('OANDA:', '');
-    document.getElementById('tvContainer').innerHTML = `
-        <iframe width="100%" height="100%" 
-            src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(symbol)}&interval=1&theme=dark">
-        </iframe>`;
-}
-
 // ====================== INIT ======================
-updateClock();
+updateClock = () => setInterval(() => {
+    document.getElementById('clock').innerHTML = new Date().toLocaleTimeString('id-ID');
+}, 1000);
+
 createButtons();
 loadTradingView('BINANCE:BTCUSDT');
-connectWebSocket(pairs[0]);
-fetchRealFundingRate('BTCUSDT'); // Initial real funding
+connectWebSocket('BTCUSDT');
+fetchFundingRate('BTCUSDT');
 
-// Update funding rate setiap 8 detik
+// Auto update Funding Rate
 setInterval(() => {
-    if (state.dataSource === 'binance_futures') {
-        fetchRealFundingRate(state.pair);
-    }
+    if (state.currentPair) fetchFundingRate(state.currentPair);
 }, 8000);
+
+updateClock();
 </script>
 </body>
 </html>
