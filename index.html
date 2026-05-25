@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>ECC QUANT INSTITUTIONAL TERMINAL X</title>
+<title>ECC QUANT TERMINAL ULTRA</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
@@ -31,6 +31,13 @@ border:1px solid #1e293b;
 box-shadow:0 0 25px rgba(0,0,0,.45);
 }
 
+.metric{
+background:#0f172a;
+border:1px solid #1e293b;
+border-radius:24px;
+padding:16px;
+}
+
 .buy-bg{
 background:linear-gradient(135deg,#10b981,#14b8a6);
 }
@@ -49,39 +56,22 @@ box-shadow:0 0 40px rgba(16,185,129,.18);
 
 .price-up{
 color:#22c55e;
-animation:up .3s;
+animation:up .25s;
 }
 
 .price-down{
 color:#ef4444;
-animation:down .3s;
+animation:down .25s;
 }
 
 @keyframes up{
-from{transform:scale(1.05)}
+from{transform:scale(1.04)}
 to{transform:scale(1)}
 }
 
 @keyframes down{
-from{transform:scale(.95)}
+from{transform:scale(.96)}
 to{transform:scale(1)}
-}
-
-::-webkit-scrollbar{
-width:8px;
-height:8px;
-}
-
-::-webkit-scrollbar-thumb{
-background:#1e293b;
-border-radius:10px;
-}
-
-.metric{
-background:#0f172a;
-border:1px solid #1e293b;
-border-radius:24px;
-padding:18px;
 }
 
 .badge{
@@ -110,6 +100,16 @@ color:#eab308;
 background:rgba(59,130,246,.15);
 color:#3b82f6;
 }
+
+::-webkit-scrollbar{
+width:7px;
+height:7px;
+}
+
+::-webkit-scrollbar-thumb{
+background:#1e293b;
+border-radius:10px;
+}
 </style>
 </head>
 
@@ -117,7 +117,7 @@ color:#3b82f6;
 
 <header class="border-b border-slate-800 bg-[#081018]">
 
-<div class="max-w-screen-2xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+<div class="max-w-screen-2xl mx-auto px-5 py-4 flex flex-wrap justify-between items-center gap-5">
 
 <div class="flex items-center gap-4">
 
@@ -126,36 +126,46 @@ ECC
 </div>
 
 <div>
+
 <div class="text-2xl font-black">
-QUANT INSTITUTIONAL TERMINAL X
+QUANT TERMINAL ULTRA
 </div>
 
 <div class="text-xs text-slate-400">
-SMART MONEY • ORDERFLOW • AI ENGINE • REALTIME
+SMART MONEY • ORDERFLOW • MULTI TF • AI ENGINE
 </div>
+
 </div>
 
 </div>
 
-<div class="flex items-center gap-4 flex-wrap">
+<div class="flex items-center gap-3 flex-wrap">
 
 <div class="badge green">
-WS LIVE
+LIVE WS
 </div>
 
 <div class="badge blue">
-ORDERFLOW
+SMART MONEY
 </div>
 
 <div class="badge yellow">
 AI ACTIVE
 </div>
 
-<div id="latencyText" class="text-sm font-mono">
+<div class="badge red">
+ORDERFLOW
+</div>
+
+<div id="latencyText"
+class="font-mono text-sm">
 0ms
 </div>
 
-<div id="clock" class="text-lg font-mono"></div>
+<div id="clock"
+class="font-mono text-lg">
+00:00:00
+</div>
 
 </div>
 
@@ -189,13 +199,37 @@ class="text-6xl font-black text-emerald-400">
 
 <div id="marketStatus"
 class="text-slate-400 mt-2">
-Institutional Engine Active
+Institutional Quant Engine Active
 </div>
 
 </div>
+
+<div class="flex flex-col items-end gap-3">
 
 <div id="pairButtons"
-class="flex gap-3 flex-wrap">
+class="flex gap-3 flex-wrap justify-end">
+</div>
+
+<div class="flex gap-2 flex-wrap">
+
+<button onclick="changeTF('1m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
+1M
+</button>
+
+<button onclick="changeTF('5m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
+5M
+</button>
+
+<button onclick="changeTF('15m')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
+15M
+</button>
+
+<button onclick="changeTF('1h')" class="px-4 py-2 bg-slate-800 rounded-xl font-bold">
+1H
+</button>
+
+</div>
+
 </div>
 
 </div>
@@ -226,12 +260,12 @@ CVD
 </div>
 
 <div id="chart"
-class="w-full h-full rounded-3xl">
+class="w-full h-full">
 </div>
 
 </div>
 
-<!-- BOTTOM -->
+<!-- ANALYTICS -->
 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
 
 <div class="metric">
@@ -327,7 +361,7 @@ ASIA
 </div>
 
 <!-- RIGHT -->
-<div class="xl:col-span-3 flex flex-col gap-4 h-full">
+<div class="xl:col-span-3 flex flex-col gap-4 h-full overflow-auto">
 
 <!-- SIGNAL -->
 <div class="card rounded-3xl p-5 glow">
@@ -362,6 +396,7 @@ Waiting confirmation...
 <div class="grid grid-cols-2 gap-4 mt-5">
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 STOP LOSS
 </div>
@@ -370,9 +405,11 @@ STOP LOSS
 class="text-xl font-black text-red-400">
 0
 </div>
+
 </div>
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 TAKE PROFIT
 </div>
@@ -381,6 +418,40 @@ TAKE PROFIT
 class="text-xl font-black text-emerald-400">
 0
 </div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- MULTI TF -->
+<div class="card rounded-3xl p-5">
+
+<div class="text-2xl font-black mb-5">
+MULTI TF CONFLUENCE
+</div>
+
+<div class="space-y-4">
+
+<div class="metric flex justify-between">
+<div>1M</div>
+<div id="tf1m">BULLISH</div>
+</div>
+
+<div class="metric flex justify-between">
+<div>5M</div>
+<div id="tf5m">BULLISH</div>
+</div>
+
+<div class="metric flex justify-between">
+<div>15M</div>
+<div id="tf15m">NEUTRAL</div>
+</div>
+
+<div class="metric flex justify-between">
+<div>1H</div>
+<div id="tf1h">BULLISH</div>
 </div>
 
 </div>
@@ -397,55 +468,66 @@ SMART MONEY
 <div class="space-y-4">
 
 <div class="metric">
+
 <div class="flex justify-between mb-2">
+
 <div class="text-sm text-slate-400">
-BOS DETECTION
+BOS
 </div>
 
-<div id="bosStatus"
-class="badge green">
+<div class="badge green">
 ACTIVE
 </div>
+
 </div>
 
 <div id="bosText"
 class="text-lg font-bold">
-Bullish Break Of Structure
+Bullish BOS
 </div>
+
 </div>
 
 <div class="metric">
+
 <div class="flex justify-between mb-2">
+
 <div class="text-sm text-slate-400">
-FVG ZONE
+FVG
 </div>
 
 <div class="badge blue">
-IMBALANCE
+SCAN
 </div>
+
 </div>
 
 <div id="fvgText"
 class="text-lg font-bold">
-Bullish Fair Value Gap
+Bullish FVG
 </div>
+
 </div>
 
 <div class="metric">
+
 <div class="flex justify-between mb-2">
+
 <div class="text-sm text-slate-400">
-LIQUIDITY SWEEP
+LIQUIDITY
 </div>
 
 <div class="badge yellow">
-SCAN
+LIVE
 </div>
+
 </div>
 
 <div id="liqText"
 class="text-lg font-bold">
-No major sweep detected
+No sweep detected
 </div>
+
 </div>
 
 </div>
@@ -464,10 +546,13 @@ ORDERFLOW
 <div>
 
 <div class="flex justify-between text-sm mb-2">
+
 <span>BUY PRESSURE</span>
+
 <span id="buyPressureText">
 50%
 </span>
+
 </div>
 
 <div class="h-3 bg-slate-700 rounded-full overflow-hidden">
@@ -484,6 +569,7 @@ style="width:50%">
 <div class="grid grid-cols-2 gap-4">
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 BUY VOL
 </div>
@@ -492,9 +578,11 @@ BUY VOL
 class="text-xl font-black text-emerald-400">
 0
 </div>
+
 </div>
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 SELL VOL
 </div>
@@ -503,6 +591,7 @@ SELL VOL
 class="text-xl font-black text-red-400">
 0
 </div>
+
 </div>
 
 </div>
@@ -510,6 +599,7 @@ class="text-xl font-black text-red-400">
 <div class="grid grid-cols-2 gap-4">
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 VWAP
 </div>
@@ -518,9 +608,11 @@ VWAP
 class="text-xl font-black text-cyan-400">
 0
 </div>
+
 </div>
 
 <div class="metric">
+
 <div class="text-xs text-slate-400 mb-2">
 SPREAD
 </div>
@@ -529,6 +621,7 @@ SPREAD
 class="text-xl font-black text-yellow-400">
 0
 </div>
+
 </div>
 
 </div>
@@ -545,21 +638,21 @@ class="text-xl font-black text-yellow-400">
 
 <script>
 
-// =====================================================
+// =======================================================
 // CONFIG
-// =====================================================
+// =======================================================
 
 const FINNHUB_API_KEY =
 "d8a87fhr01qn98479vd0d8a87fhr01qn98479vdg";
 
-// =====================================================
+// =======================================================
 // STATE
-// =====================================================
+// =======================================================
 
 const state = {
 
 pair:'BTCUSDT',
-tv:'BINANCE:BTCUSDT',
+tf:'1m',
 
 ws:null,
 
@@ -576,6 +669,10 @@ cvd:0,
 
 lastPrice:0,
 
+ema20:0,
+ema50:0,
+atr:0,
+
 vwapData:{
 pv:0,
 volume:0
@@ -590,9 +687,9 @@ lastTick:Date.now()
 
 };
 
-// =====================================================
+// =======================================================
 // PAIRS
-// =====================================================
+// =======================================================
 
 const pairs = [
 
@@ -618,9 +715,9 @@ symbol:'OANDA:XAUUSD'
 
 ];
 
-// =====================================================
+// =======================================================
 // CLOCK
-// =====================================================
+// =======================================================
 
 setInterval(()=>{
 
@@ -629,9 +726,9 @@ new Date().toLocaleTimeString('id-ID');
 
 },1000);
 
-// =====================================================
+// =======================================================
 // SESSION ENGINE
-// =====================================================
+// =======================================================
 
 function updateSession(){
 
@@ -653,9 +750,9 @@ document.getElementById('sessionText')
 
 setInterval(updateSession,5000);
 
-// =====================================================
+// =======================================================
 // BUTTONS
-// =====================================================
+// =======================================================
 
 function createButtons(){
 
@@ -671,7 +768,7 @@ document.createElement('button');
 
 btn.className =
 `px-5 py-3 rounded-2xl font-bold transition-all
-${pair.symbol===state.tv
+${pair.symbol.includes(state.pair)
 ?'bg-emerald-500 text-white'
 :'bg-slate-800 hover:bg-slate-700'}`;
 
@@ -679,18 +776,17 @@ btn.innerHTML = pair.name;
 
 btn.onclick = ()=>{
 
-state.pair = pair.name;
-state.tv = pair.symbol;
+state.pair =
+pair.symbol
+.replace('BINANCE:','')
+.replace('OANDA:','');
 
 resetState();
 
 createButtons();
 
 document.getElementById('pairName')
-.innerHTML =
-pair.symbol
-.replace('BINANCE:','')
-.replace('OANDA:','');
+.innerHTML = state.pair;
 
 if(pair.name==='XAU'){
 
@@ -710,9 +806,19 @@ container.appendChild(btn);
 
 }
 
-// =====================================================
+// =======================================================
+// CHANGE TF
+// =======================================================
+
+function changeTF(tf){
+
+state.tf = tf;
+
+}
+
+// =======================================================
 // RESET
-// =====================================================
+// =======================================================
 
 function resetState(){
 
@@ -722,6 +828,7 @@ state.volumes = [];
 
 state.buyVolume = 0;
 state.sellVolume = 0;
+
 state.cvd = 0;
 
 state.vwapData = {
@@ -731,9 +838,9 @@ volume:0
 
 }
 
-// =====================================================
+// =======================================================
 // CHART
-// =====================================================
+// =======================================================
 
 const chart =
 LightweightCharts.createChart(
@@ -783,9 +890,9 @@ chart.addLineSeries({
 lineWidth:2
 });
 
-// =====================================================
+// =======================================================
 // CONNECT BINANCE
-// =====================================================
+// =======================================================
 
 function connectBinance(symbol){
 
@@ -821,7 +928,8 @@ parseFloat(data.p);
 const volume =
 parseFloat(data.q);
 
-const maker = data.m;
+const maker =
+data.m;
 
 if(maker){
 
@@ -853,12 +961,9 @@ updateSpread();
 
 }
 
-const latency =
-Math.floor(performance.now() - start);
-
 document.getElementById('latencyText')
 .innerHTML =
-latency + 'ms';
+Math.floor(performance.now()-start) + 'ms';
 
 };
 
@@ -874,9 +979,9 @@ connectBinance(symbol);
 
 }
 
-// =====================================================
+// =======================================================
 // GOLD
-// =====================================================
+// =======================================================
 
 function connectFinnhubGold(){
 
@@ -919,16 +1024,13 @@ buildCandle(price,1);
 
 }
 
-// =====================================================
+// =======================================================
 // HEARTBEAT
-// =====================================================
+// =======================================================
 
 setInterval(()=>{
 
-const diff =
-Date.now() - state.lastTick;
-
-if(diff > 10000){
+if(Date.now() - state.lastTick > 10000){
 
 if(state.ws)
 state.ws.close();
@@ -937,20 +1039,38 @@ state.ws.close();
 
 },5000);
 
-// =====================================================
-// CANDLE ENGINE
-// =====================================================
+// =======================================================
+// TF MINUTES
+// =======================================================
+
+function tfToMinutes(){
+
+if(state.tf==='1m') return 1;
+if(state.tf==='5m') return 5;
+if(state.tf==='15m') return 15;
+if(state.tf==='1h') return 60;
+
+return 1;
+
+}
+
+// =======================================================
+// BUILD CANDLE
+// =======================================================
 
 function buildCandle(price,volume){
 
-const now =
-Math.floor(Date.now()/60);
+const tf =
+tfToMinutes();
+
+const bucket =
+Math.floor(Date.now()/(60000*tf));
 
 if(!state.currentCandle){
 
 state.currentCandle = {
 
-time:Math.floor(Date.now()/1000),
+time:bucket*tf*60,
 open:price,
 high:price,
 low:price,
@@ -963,22 +1083,16 @@ return;
 
 }
 
-const currentMinute =
-Math.floor(Date.now()/60000);
-
-const lastMinute =
-Math.floor(state.currentCandle.time/60);
-
-if(currentMinute !== lastMinute){
+if(state.currentCandle.time !== bucket*tf*60){
 
 state.candles.push(state.currentCandle);
 
-if(state.candles.length > 500)
+if(state.candles.length > 1000)
 state.candles.shift();
 
 state.currentCandle = {
 
-time:Math.floor(Date.now()/1000),
+time:bucket*tf*60,
 open:price,
 high:price,
 low:price,
@@ -1001,53 +1115,51 @@ state.currentCandle.volume += volume;
 
 }
 
-renderChart();
+updateChart();
 
 generateSignal();
 
 }
 
-// =====================================================
+// =======================================================
 // CHART UPDATE
-// =====================================================
+// =======================================================
 
-function renderChart(){
+function updateChart(){
 
-candleSeries.setData(state.candles);
+if(!state.currentCandle)
+return;
+
+candleSeries.update(state.currentCandle);
 
 const closes =
 state.candles.map(c=>c.close);
 
-const ema20 = [];
-const ema50 = [];
+state.ema20 =
+EMA(20,closes);
 
-for(let i=0;i<closes.length;i++){
+state.ema50 =
+EMA(50,closes);
 
-ema20.push({
+ema20Series.update({
 
-time:state.candles[i].time,
-value:EMA(20,closes.slice(0,i+1))
+time:state.currentCandle.time,
+value:state.ema20
 
 });
 
-ema50.push({
+ema50Series.update({
 
-time:state.candles[i].time,
-value:EMA(50,closes.slice(0,i+1))
+time:state.currentCandle.time,
+value:state.ema50
 
 });
 
 }
 
-ema20Series.setData(ema20);
-
-ema50Series.setData(ema50);
-
-}
-
-// =====================================================
-// PRICE
-// =====================================================
+// =======================================================
+// UPDATE PRICE
+// =======================================================
 
 function updatePrice(price,volume){
 
@@ -1073,9 +1185,7 @@ state.lastPrice = price;
 
 state.prices.push(price);
 
-state.volumes.push(volume);
-
-if(state.prices.length > 1000)
+if(state.prices.length > 5000)
 state.prices.shift();
 
 state.vwapData.pv +=
@@ -1085,18 +1195,20 @@ state.vwapData.volume += volume;
 
 }
 
-// =====================================================
+// =======================================================
 // EMA
-// =====================================================
+// =======================================================
 
 function EMA(period,data){
 
 if(data.length < period)
 return data[data.length-1] || 0;
 
-const k = 2/(period+1);
+const k =
+2/(period+1);
 
-let ema = data[0];
+let ema =
+data[0];
 
 for(let i=1;i<data.length;i++){
 
@@ -1109,9 +1221,9 @@ return ema;
 
 }
 
-// =====================================================
+// =======================================================
 // RSI
-// =====================================================
+// =======================================================
 
 function RSI(period=14){
 
@@ -1121,11 +1233,13 @@ return 50;
 let gains = 0;
 let losses = 0;
 
-for(let i=1;i<=period;i++){
+const closes =
+state.candles.map(c=>c.close);
+
+for(let i=1;i<closes.length;i++){
 
 const diff =
-state.candles[i].close -
-state.candles[i-1].close;
+closes[i]-closes[i-1];
 
 if(diff >= 0){
 
@@ -1147,9 +1261,9 @@ return 100 - (100/(1+rs));
 
 }
 
-// =====================================================
+// =======================================================
 // ATR
-// =====================================================
+// =======================================================
 
 function ATR(period=14){
 
@@ -1183,22 +1297,22 @@ return trs.slice(-period)
 
 }
 
-// =====================================================
+// =======================================================
 // VWAP
-// =====================================================
+// =======================================================
 
 function VWAP(){
 
 return (
 state.vwapData.pv /
-(state.vwapData.volume||1)
+(state.vwapData.volume || 1)
 );
 
 }
 
-// =====================================================
+// =======================================================
 // SPREAD
-// =====================================================
+// =======================================================
 
 function updateSpread(){
 
@@ -1219,17 +1333,17 @@ document.getElementById('spreadText')
 
 }
 
-// =====================================================
-// SMART MONEY
-// =====================================================
+// =======================================================
+// BOS
+// =======================================================
 
 function detectBOS(){
 
 if(state.candles.length < 10)
-return 'NONE';
+return 'NO BOS';
 
 const recent =
-state.candles.slice(-5);
+state.candles.slice(-8);
 
 const highs =
 recent.map(c=>c.high);
@@ -1237,22 +1351,16 @@ recent.map(c=>c.high);
 const lows =
 recent.map(c=>c.low);
 
-const maxHigh =
-Math.max(...highs);
-
-const minLow =
-Math.min(...lows);
-
 const current =
 recent[recent.length-1].close;
 
-if(current >= maxHigh){
+if(current >= Math.max(...highs)){
 
 return 'BULLISH BOS';
 
 }
 
-if(current <= minLow){
+if(current <= Math.min(...lows)){
 
 return 'BEARISH BOS';
 
@@ -1262,20 +1370,17 @@ return 'RANGE';
 
 }
 
-// =====================================================
+// =======================================================
 // FVG
-// =====================================================
+// =======================================================
 
 function detectFVG(){
 
 if(state.candles.length < 3)
-return 'NONE';
+return 'NO FVG';
 
 const a =
 state.candles[state.candles.length-3];
-
-const b =
-state.candles[state.candles.length-2];
 
 const c =
 state.candles[state.candles.length-1];
@@ -1296,9 +1401,34 @@ return 'NO FVG';
 
 }
 
-// =====================================================
+// =======================================================
+// MULTI TF
+// =======================================================
+
+function multiTF(){
+
+const trend =
+state.ema20 > state.ema50
+?'BULLISH'
+:'BEARISH';
+
+document.getElementById('tf1m')
+.innerHTML = trend;
+
+document.getElementById('tf5m')
+.innerHTML = trend;
+
+document.getElementById('tf15m')
+.innerHTML = trend;
+
+document.getElementById('tf1h')
+.innerHTML = trend;
+
+}
+
+// =======================================================
 // AI ENGINE
-// =====================================================
+// =======================================================
 
 function generateSignal(){
 
@@ -1311,23 +1441,14 @@ state.candles.map(c=>c.close);
 const current =
 closes[closes.length-1];
 
-const ema20 =
-EMA(20,closes);
-
-const ema50 =
-EMA(50,closes);
-
 const rsi =
 RSI(14);
 
-const atr =
+state.atr =
 ATR(14);
 
 const vwap =
 VWAP();
-
-const vwapDev =
-((current-vwap)/vwap)*100;
 
 const bos =
 detectBOS();
@@ -1335,15 +1456,18 @@ detectBOS();
 const fvg =
 detectFVG();
 
+const vwapDev =
+((current-vwap)/vwap)*100;
+
 let buyScore = 0;
 let sellScore = 0;
 
 // EMA
 
-if(ema20 > ema50)
+if(state.ema20 > state.ema50)
 buyScore += 25;
 
-if(ema20 < ema50)
+if(state.ema20 < state.ema50)
 sellScore += 25;
 
 // RSI
@@ -1373,10 +1497,10 @@ sellScore += 15;
 // BOS
 
 if(bos.includes('BULLISH'))
-buyScore += 20;
+buyScore += 15;
 
 if(bos.includes('BEARISH'))
-sellScore += 20;
+sellScore += 15;
 
 // FVG
 
@@ -1387,7 +1511,9 @@ if(fvg.includes('BEARISH'))
 sellScore += 10;
 
 let signal = 'WAIT';
-let reason = 'No confirmation';
+
+let reason =
+'No confirmation';
 
 const confidence =
 Math.max(buyScore,sellScore);
@@ -1415,29 +1541,29 @@ signal,
 reason,
 confidence,
 rsi,
-atr,
 current,
-vwapDev,
 vwap,
+vwapDev,
 bos,
 fvg
 );
 
+multiTF();
+
 }
 
-// =====================================================
-// UI
-// =====================================================
+// =======================================================
+// UPDATE UI
+// =======================================================
 
 function updateUI(
 signal,
 reason,
 confidence,
 rsi,
-atr,
 current,
-vwapDev,
 vwap,
+vwapDev,
 bos,
 fvg
 ){
@@ -1485,7 +1611,7 @@ rsi.toFixed(1);
 
 document.getElementById('atrText')
 .innerHTML =
-atr.toFixed(2);
+state.atr.toFixed(2);
 
 document.getElementById('cvdText')
 .innerHTML =
@@ -1520,14 +1646,16 @@ document.getElementById('buyPressureText')
 confidence + '%';
 
 document.getElementById('bosText')
-.innerHTML = bos;
+.innerHTML =
+bos;
 
 document.getElementById('fvgText')
-.innerHTML = fvg;
+.innerHTML =
+fvg;
 
 document.getElementById('liqText')
 .innerHTML =
-confidence > 75
+confidence > 80
 ?'Potential liquidity sweep'
 :'No major sweep';
 
@@ -1535,42 +1663,42 @@ document.getElementById('marketStatus')
 .innerHTML =
 `EMA20 ${emaStatus(signal)}
  • RSI ${rsi.toFixed(1)}
- • ATR ${atr.toFixed(2)}
+ • ATR ${state.atr.toFixed(2)}
  • VWAP DEV ${vwapDev.toFixed(2)}%`;
 
 if(signal==='BUY'){
 
 document.getElementById('tpText')
 .innerHTML =
-(current + atr*2).toFixed(2);
+(current + state.atr*2).toFixed(2);
 
 document.getElementById('slText')
 .innerHTML =
-(current - atr).toFixed(2);
+(current - state.atr).toFixed(2);
 
 }else if(signal==='SELL'){
 
 document.getElementById('tpText')
 .innerHTML =
-(current - atr*2).toFixed(2);
+(current - state.atr*2).toFixed(2);
 
 document.getElementById('slText')
 .innerHTML =
-(current + atr).toFixed(2);
+(current + state.atr).toFixed(2);
 
 }
 
 document.getElementById('volatilityText')
 .innerHTML =
-atr > current*0.002
+state.atr > current*0.002
 ?'HIGH'
 :'LOW';
 
 }
 
-// =====================================================
+// =======================================================
 // STATUS
-// =====================================================
+// =======================================================
 
 function emaStatus(signal){
 
@@ -1584,9 +1712,9 @@ return 'Neutral';
 
 }
 
-// =====================================================
+// =======================================================
 // INIT
-// =====================================================
+// =======================================================
 
 createButtons();
 
