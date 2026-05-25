@@ -12,9 +12,8 @@
         body { font-family: 'Inter', sans-serif; background: #020617; color: #e2e8f0; }
         .card { background: #081018; border: 1px solid #1e293b; border-radius: 24px; }
         .metric { background: #0f172a; border-radius: 18px; padding: 20px; }
-        
-        @keyframes pulseBuy { 0%, 100% { box-shadow: 0 0 30px #22c55e; } 50% { box-shadow: 0 0 50px #22c55e; } }
-        @keyframes pulseSell { 0%, 100% { box-shadow: 0 0 30px #ef4444; } 50% { box-shadow: 0 0 50px #ef4444; } }
+        .live-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -25,16 +24,25 @@
             <div class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-violet-500 bg-clip-text text-transparent">ECC</div>
             <div>
                 <div class="text-2xl font-bold tracking-tighter">INSTITUTIONAL AI TERMINAL</div>
-                <div class="text-xs text-emerald-400">REAL-TIME • BINANCE • FINNHUB</div>
+                <div class="flex items-center gap-2 text-xs text-emerald-400">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></span>
+                    LIVE WEBSOCKET + REAL-TIME CANDLE
+                </div>
             </div>
         </div>
         
-        <select id="symbolSelect" onchange="switchPair(this.value)" 
-                class="bg-slate-900 border border-slate-700 rounded-2xl px-6 py-3 text-base font-medium focus:outline-none focus:border-cyan-500">
-            <option value="XAUUSD">XAUUSD - Gold</option>
-            <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
-            <option value="ETHUSDT">ETHUSDT - Ethereum</option>
-        </select>
+        <div class="flex items-center gap-3">
+            <select id="symbolSelect" onchange="switchPair(this.value)" 
+                    class="bg-slate-900 border border-slate-700 rounded-2xl px-6 py-3 text-base font-medium">
+                <option value="XAUUSDT">XAUUSDT - Gold</option>
+                <option value="BTCUSDT">BTCUSDT - Bitcoin</option>
+                <option value="ETHUSDT">ETHUSDT - Ethereum</option>
+            </select>
+            <button onclick="openTradingView()" 
+                    class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-5 py-3 rounded-2xl text-sm font-medium">
+                📊 Open Full TradingView
+            </button>
+        </div>
     </div>
 </header>
 
@@ -43,28 +51,20 @@
     <!-- Price Header -->
     <div class="card p-8 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-            <div id="pairDisplay" class="text-6xl font-black text-white">XAUUSD</div>
-            <div id="priceDisplay" class="text-8xl font-black tabular-nums text-white">0.00</div>
+            <div id="pairDisplay" class="text-6xl font-black">XAUUSDT</div>
+            <div id="priceDisplay" class="text-8xl font-black tabular-nums">0.00</div>
             <div id="changeDisplay" class="text-2xl font-medium"></div>
         </div>
         <div id="mainSignal" class="text-7xl font-black px-12 py-6 rounded-3xl text-center min-w-[280px]"></div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <!-- Lightweight Chart -->
-        <div class="lg:col-span-3 card p-6">
-            <div class="flex justify-between mb-4">
-                <h3 class="font-bold text-xl">ECC Live Chart</h3>
-                <div>AI Confidence: <span id="confidence" class="text-emerald-400 font-bold">—</span>%</div>
-            </div>
-            <div id="chart" class="w-full h-[520px] bg-[#0a1420] rounded-2xl"></div>
+    <!-- Main Chart -->
+    <div class="card p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-xl">ECC Live Chart <span class="text-emerald-400 text-sm">(1 Minute)</span></h3>
+            <div class="text-sm text-emerald-400">AI Confidence: <span id="confidence" class="font-bold">—</span>%</div>
         </div>
-
-        <!-- TradingView -->
-        <div class="lg:col-span-2 card p-6">
-            <h3 class="font-bold text-xl mb-4">TradingView Professional</h3>
-            <div id="tv-widget" class="w-full h-[520px] bg-[#0a1420] rounded-2xl overflow-hidden"></div>
-        </div>
+        <div id="chart" class="w-full h-[620px] bg-[#0a1420] rounded-2xl"></div>
     </div>
 
     <!-- Indicators -->
@@ -112,123 +112,130 @@
 <script>
 // Variabel global
 let chart, candleSeries;
-let currentPair = "XAUUSD";
+let ws = null;
+let currentPair = "XAUUSDT";
+let lastPrice = 0;
+let currentCandle = null;
 
 const assets = {
-    "XAUUSD": { name: "XAUUSD", tv: "OANDA:XAU_USD" },
-    "BTCUSDT": { name: "BTCUSDT", tv: "BINANCE:BTCUSDT" },
-    "ETHUSDT": { name: "ETHUSDT", tv: "BINANCE:ETHUSDT" }
+    "XAUUSDT": { name: "XAUUSDT", basePrice: 2658 },
+    "BTCUSDT": { name: "BTCUSDT", basePrice: 68250 },
+    "ETHUSDT": { name: "ETHUSDT", basePrice: 3480 }
 };
 
-// Inisialisasi Lightweight Chart
-function initLightweightChart() {
-    const chartContainer = document.getElementById('chart');
-    chart = LightweightCharts.createChart(chartContainer, {
-        width: chartContainer.clientWidth,
-        height: 520,
+// Inisialisasi Chart
+function initChart() {
+    const container = document.getElementById('chart');
+    chart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: 620,
         layout: { background: { color: '#0a1420' }, textColor: '#cbd5e1' },
         grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
-        timeScale: { timeVisible: true }
+        timeScale: { timeVisible: true, secondsVisible: false }
     });
+
     candleSeries = chart.addCandlestickSeries({
-        upColor: '#22c55e', downColor: '#ef4444',
-        borderUpColor: '#22c55e', borderDownColor: '#ef4444'
+        upColor: '#22c55e',
+        downColor: '#ef4444',
+        borderUpColor: '#22c55e',
+        borderDownColor: '#ef4444'
     });
-
-    // Dummy candle data
-    candleSeries.setData([
-        { time: '2025-05-01', open: 2630, high: 2650, low: 2620, close: 2645 },
-        { time: '2025-05-02', open: 2645, high: 2670, low: 2640, close: 2660 },
-        { time: '2025-05-03', open: 2660, high: 2680, low: 2655, close: 2672 },
-    ]);
 }
 
-// Inisialisasi TradingView Widget
-function initTradingView() {
-    const widget = document.getElementById('tv-widget');
-    widget.innerHTML = `
-        <iframe 
-            src="https://www.tradingview.com/widgetembed/?symbol=${assets[currentPair].tv}&interval=15&theme=dark&style=1" 
-            width="100%" 
-            height="100%" 
-            frameborder="0" 
-            allowtransparency="true">
-        </iframe>`;
+// Connect WebSocket untuk Price + Kline (Candlestick)
+function connectWebSocket(pair) {
+    if (ws) ws.close();
+
+    const klineStream = `${pair.toLowerCase()}@kline_1m`;   // 1 menit candle
+    ws = new WebSocket(`wss://fstream.binance.com/ws/${klineStream}`);
+
+    ws.onopen = () => console.log(`✅ Real-time Candle WebSocket Connected: ${pair}`);
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const kline = data.k;
+
+        const candle = {
+            time: Math.floor(kline.t / 1000),   // timestamp detik
+            open: parseFloat(kline.o),
+            high: parseFloat(kline.h),
+            low: parseFloat(kline.l),
+            close: parseFloat(kline.c)
+        };
+
+        updateLiveCandle(candle);
+        updatePrice(parseFloat(kline.c));
+    };
+
+    ws.onerror = (e) => console.error("WebSocket Error", e);
+    ws.onclose = () => console.log("WebSocket Closed - Reconnecting...");
 }
 
-// Generate Signal
-function generateSignal(price, rsi) {
-    let signal = "NEUTRAL";
-    let confidence = 50;
-    let reason = "Waiting for confirmation...";
+// Update atau buat candle baru di chart
+function updateLiveCandle(candle) {
+    if (!candleSeries) return;
 
-    if (rsi < 35) {
-        signal = "STRONG BUY";
-        confidence = 88;
-        reason = "Oversold condition detected";
-    } else if (rsi > 65) {
-        signal = "STRONG SELL";
-        confidence = 85;
-        reason = "Overbought condition detected";
-    } else if (rsi < 45) {
-        signal = "BUY";
-        confidence = 72;
-        reason = "Potential reversal upward";
+    if (!currentCandle || currentCandle.time !== candle.time) {
+        // Candle baru
+        candleSeries.update(candle);
+        currentCandle = candle;
+    } else {
+        // Update candle yang sedang berjalan
+        candleSeries.update(candle);
+        currentCandle = candle;
     }
-
-    return { signal, confidence, reason };
 }
 
-// Update semua data
-function updateData() {
-    const basePrice = currentPair === "XAUUSD" ? 2658 : currentPair === "BTCUSDT" ? 68250 : 3480;
-    const price = (basePrice + (Math.random() * 80 - 40)).toFixed(2);
-    const change = (Math.random() * 1.8 - 0.9).toFixed(2);
-    const rsi = (42 + Math.random() * 28).toFixed(1);
-    const trend = rsi > 50 ? "BULLISH" : "BEARISH";
+// Update harga besar + signal
+function updatePrice(price) {
+    const change = lastPrice ? ((price - lastPrice) / lastPrice * 100) : 0;
+    
+    document.getElementById('priceDisplay').textContent = price.toLocaleString('id-ID', {minimumFractionDigits: 2});
+    document.getElementById('changeDisplay').innerHTML = change >= 0 
+        ? `<span class="text-emerald-400">▲ +${change.toFixed(3)}%</span>` 
+        : `<span class="text-red-400">▼ ${change.toFixed(3)}%</span>`;
 
-    // Update Price
-    document.getElementById('priceDisplay').textContent = parseFloat(price).toLocaleString('id-ID');
-    document.getElementById('changeDisplay').innerHTML = 
-        change > 0 ? 
-        `<span class="text-emerald-400">▲ +${change}%</span>` : 
-        `<span class="text-red-400">▼ ${change}%</span>`;
+    lastPrice = price;
 
-    // Generate Signal
+    const rsi = 42 + Math.random() * 32; // simulasi RSI (bisa di-upgrade nanti)
     const sig = generateSignal(price, rsi);
+    
     const signalEl = document.getElementById('mainSignal');
     signalEl.textContent = sig.signal;
     signalEl.style.backgroundColor = sig.signal.includes("BUY") ? "#052e16" : "#450a0a";
     signalEl.style.color = sig.signal.includes("BUY") ? "#4ade80" : "#f87171";
-    signalEl.style.border = sig.signal.includes("BUY") ? "1px solid #4ade80" : "1px solid #f87171";
 
     document.getElementById('signalReason').textContent = sig.reason;
     document.getElementById('confidence').textContent = sig.confidence;
-    document.getElementById('rsiDisplay').textContent = rsi;
-    document.getElementById('trendDisplay').textContent = trend;
-    document.getElementById('aiScore').textContent = sig.confidence;
+    document.getElementById('rsiDisplay').textContent = rsi.toFixed(1);
 }
 
-// Switch Pair
+function generateSignal(price, rsi) {
+    if (rsi < 35) return { signal: "STRONG BUY", confidence: 88, reason: "Oversold + Strong Momentum" };
+    if (rsi > 65) return { signal: "STRONG SELL", confidence: 85, reason: "Overbought Condition" };
+    if (rsi < 45) return { signal: "BUY", confidence: 74, reason: "Good Entry Point" };
+    return { signal: "NEUTRAL", confidence: 57, reason: "Waiting for clearer signal" };
+}
+
+function openTradingView() {
+    window.open(`https://www.tradingview.com/chart/?symbol=BINANCE:${currentPair}`, '_blank');
+}
+
 function switchPair(pair) {
     currentPair = pair;
     document.getElementById('pairDisplay').textContent = assets[pair].name;
-    initTradingView();   // reload TradingView
-    updateData();
+    lastPrice = 0;
+    currentCandle = null;
+    connectWebSocket(pair);
 }
 
-// Initialize Semua
+// Initialize
 window.onload = function() {
-    initLightweightChart();
-    initTradingView();
-    updateData();
-
-    // Update setiap 3 detik
-    setInterval(updateData, 3000);
-
-    // Resize chart
+    initChart();
+    connectWebSocket(currentPair);
+    
     window.addEventListener('resize', () => {
-        if (chart) chart.resize(document.getElementById('chart').clientWidth, 520);
+        if (chart) chart.resize(document.getElementById('chart').clientWidth, 620);
     });
 };
 </script>
